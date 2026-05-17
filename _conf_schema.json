@@ -4,113 +4,113 @@
     "type": "object",
     "items": {
       "default_daily_limit": {
-        "description": "默认每日调用限制（每个用户每天可调用 LLM 的次数，0 表示不限制）",
+        "description": "默认日限次数",
         "type": "int",
         "default": 20,
-        "hint": "用户或群组未设置特定限额时的默认值。可被「用户特定限制」或「群组特定限制」覆盖。"
+        "hint": "每个用户每天可调用 LLM 的次数（0=不限制）。未设置特定用户/群组限额时生效，可被用户/群组特定限制覆盖。"
       },
       "default_weekly_limit": {
-        "description": "默认每周调用限制（每个用户每周可调用 LLM 的次数，0 表示不启用周限制）",
+        "description": "默认周限次数",
         "type": "int",
         "default": 0,
-        "hint": "周重置发生在「每周重置日」对应的「每日重置时间」时刻。置为 0 则跳过周限检查。"
+        "hint": "每个用户每周可调用 LLM 的次数（0=不启用）。周重置发生在「每周重置日」+「每日重置时间」时刻。"
       },
       "default_monthly_limit": {
-        "description": "默认每月调用限制（每个用户每月可调用 LLM 的次数，0 表示不启用月限制）",
+        "description": "默认月限次数",
         "type": "int",
         "default": 0,
-        "hint": "月重置发生在「每月重置日」对应的「每日重置时间」时刻。若设置值超出当月天数则自动取当月最后一天。置为 0 则跳过月限检查。"
+        "hint": "每个用户每月可调用 LLM 的次数（0=不启用）。月重置发生在「每月重置日」+「每日重置时间」时刻，超出当月天数自动取最后一天。"
       },
       "daily_reset_time": {
-        "description": "每日重置时间（HH:MM 格式，0≤H≤23，0≤M≤59）",
+        "description": "每日重置时间",
         "type": "string",
         "default": "00:00",
-        "hint": "日限、周限、月限均在此时间点重置。也是周/月重置的基准时刻（如每周一 00:00、每月1日 00:00）。"
+        "hint": "日/周/月限共用此时间点重置（HH:MM 格式，0≤H≤23，0≤M≤59）。如 00:00 表示凌晨零点，06:30 表示早上6点半。"
       },
       "weekly_reset_day": {
-        "description": "每周重置日（1=周一，7=周日，重置时刻为「每日重置时间」）",
+        "description": "每周重置日",
         "type": "int",
         "default": 1,
-        "hint": "周限在此日 + 每日重置时间 时刻清零。例如设为 1 且每日重置时间为 00:00，则每周一 00:00 重置周计数。"
+        "hint": "周限在此日 + 每日重置时间 时刻清零。1=周一，7=周日。例如设为 1+00:00，即每周一凌晨清零周计数。"
       },
       "monthly_reset_day": {
-        "description": "每月重置日（1-28，重置时刻为「每日重置时间」，超出月尾自动取最后一天）",
+        "description": "每月重置日",
         "type": "int",
         "default": 1,
-        "hint": "月限在此日 + 每日重置时间 时刻清零。若设为 31 而当月只有 30 天，则自动取 30 日重置。"
+        "hint": "月限在此日 + 每日重置时间 时刻清零（1-28）。超出当月天数自动取最后一天，如设为 31 会调整为月末。"
       },
       "enabled_limit_types": {
-        "description": "启用的限制类型（至少选一项，所有启用的维度同时生效，任一维度超额即拦截）",
+        "description": "启用的限制维度",
         "type": "list",
         "default": ["daily"],
         "items": {
           "type": "string"
         },
         "options": ["daily", "weekly", "monthly", "timeperiod"],
-        "hint": "daily=日限，weekly=周限，monthly=月限，timeperiod=自定义时间段限制。多个维度同时生效，任一维度超出即触发拦截。"
+        "hint": "选择同时生效的限流维度，任一维度超额即拦截。daily=日限，weekly=周限，monthly=月限，timeperiod=自定义时间段。"
       },
       "exempt_users": {
-        "description": "豁免用户ID列表（名单内用户不受任何限流规则约束）",
+        "description": "豁免用户ID列表",
         "type": "list",
         "default": [],
         "items": {
           "type": "string"
         },
-        "hint": "每个元素为一个用户ID。豁免用户跳过所有限流检查（日/周/月/时间段/群组限制均不生效），建议仅管理员/超级用户使用。"
+        "hint": "名单内用户完全跳过所有限流检查（日/周/月/时间段/群组限制均不生效）。每个元素为一个用户ID，建议仅管理员使用。"
       },
       "priority_users": {
-        "description": "优先用户ID列表（不参与群组共享限制，但仍受个人限额约束）",
+        "description": "优先用户ID列表",
         "type": "list",
         "default": [],
         "items": {
           "type": "string"
         },
-        "hint": "每个元素为一个用户ID。优先用户在共享群组模式下享有独立配额，不受群成员共享池限制；但仍受日/周/月/时间段及用户特定限制约束。"
+        "hint": "优先用户在共享群组模式下不受群成员共享池限制（享有独立配额），但仍受日/周/月/时间段及用户特定限制约束。"
       },
       "group_mode_settings": {
-        "description": "群组配额模式（格式：群ID:shared 或 群ID:individual，默认 shared）",
+        "description": "群组配额模式",
         "type": "list",
         "default": [],
         "items": {
           "type": "string"
         },
-        "hint": "shared=群成员共享同一配额池；individual=群成员各自独立计算。未设置的群组默认共享模式。建议每个群占一行。"
+        "hint": "格式：群ID:shared（共享池）或 群ID:individual（各自独立）。未设置默认共享。每个群占一行，如 123456:shared。"
       },
       "user_limits": {
-        "description": "用户特定限制（格式：用户ID:次数，覆盖默认限额）",
+        "description": "用户特定限制",
         "type": "list",
         "default": [],
         "items": {
           "type": "string"
         },
-        "hint": "每个元素格式为 用户ID:次数。例如：123456789:100 表示该用户每天可调用 100 次。覆盖默认限额，优先级：用户特定 > 群组特定 > 默认限额。"
+        "hint": "格式：用户ID:次数，覆盖默认限额。例如 123456789:100 表示该用户每天可调用 100 次。优先级：用户特定 > 群组特定 > 默认。"
       },
       "group_limits": {
-        "description": "群组特定限制（格式：群ID:次数，覆盖默认限额）",
+        "description": "群组特定限制",
         "type": "list",
         "default": [],
         "items": {
           "type": "string"
         },
-        "hint": "每个元素格式为 群ID:次数。例如：123456:50 表示该群每天可调用 50 次。覆盖默认限额，优先级：用户特定 > 群组特定 > 默认限额。"
+        "hint": "格式：群ID:次数，覆盖默认限额。例如 123456:50 表示该群每天可调用 50 次。优先级：用户特定 > 群组特定 > 默认。"
       },
       "time_period_limits": {
-        "description": "时间段限制（格式：HH:MM-HH:MM:次数[:enabled]，多个时段同时生效）",
+        "description": "时间段限制",
         "type": "list",
         "default": [],
         "items": {
           "type": "string"
         },
-        "hint": "每个元素格式：\nHH:MM-HH:MM:次数[:enabled]\nHH=小时（0-23），MM=分钟（0-59），支持跨天时段（如 22:00-06:00）。次数为当前时段内最大调用次数。:enabled 可选，true/false，默认 true（无效时段自动跳过）。"
+        "hint": "格式：HH:MM-HH:MM:次数[:enabled]。HH=0-23，MM=0-59，支持跨天时段（如 22:00-06:00）。次数为该时段内最大调用次数。:enabled 可省略，默认 true。"
       },
       "skip_patterns": {
-        "description": "忽略处理的消息前缀（命中的消息不参与限流统计）",
+        "description": "跳过消息前缀",
         "type": "list",
         "default": ["#", "*"],
         "items": {
           "type": "string"
         },
-        "hint": "每个元素为一个消息前缀。当用户消息以此字符串开头时，该消息完全跳过限流检查且不计入使用次数。建议用指令前缀（如 #、/、*）避免误算。"
+        "hint": "以此字符串开头的消息跳过限流检查且不计入使用次数。建议用指令前缀（如 #、/、*），避免系统消息误算到次数中。"
       }
     }
   },
@@ -125,7 +125,7 @@
         "hint": "开启后，拦截消息会显示用户已用次数 / 总额度，帮助用户了解自身用量情况。关闭则只返回提示文本，不暴露具体数字。"
       },
       "usage_tip": {
-        "description": "使用提示消息（支持占位符：{usage}, {limit}, {remaining}, {limit_type}, {reset_time}）",
+        "description": "使用提示消息",
         "type": "text",
         "default": "您今日的 LLM 调用次数已用完（{usage}/{limit}）。请在 {reset_time} 后重试。",
         "hint": "可用占位符：\n{usage}=已用次数\n{limit}=总额度\n{remaining}=剩余次数\n{limit_type}=限制类型中文名（日限/周限/月限/当前时段）\n{reset_time}=下次重置时间（如 00:00 / 周一 / 每月1日）"
