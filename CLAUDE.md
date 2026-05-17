@@ -93,3 +93,31 @@ Period keys are date-based (daily: `YYYY-MM-DD`, weekly: `YYYY-Www`, monthly: `Y
   - `core/limiter.py:9-11: E402` ← same as above
   - `core/time_period_manager.py:9: E402` ← same as above
   - `core/usage_tracker.py:9: E402` ← same as above
+
+## MCP tools
+
+If the user has configured the following MCP servers, you **must** use them:
+
+### jetbrains-ide-mcp (PyCharm MCP)
+
+- `get_file_text_by_path` / `read_file`: read project files
+- `find_files_by_name_keyword` / `search_file`: locate files by name or glob
+- `search_in_files_by_text` / `search_in_files_by_regex`: search code content
+- `get_symbol_info`: inspect symbol declarations
+- `get_file_problems`: run IntelliJ inspections on a file
+- `build_project`: trigger project build and get compilation errors
+- **Use this MCP whenever editing or inspecting Python files** — it provides IDE-level code intelligence superior to raw grep/glob.
+
+### playwright-mcp (Playwright MCP)
+
+- `browser_navigate` / `browser_snapshot` / `browser_click`: test Web UI pages interactively
+- `browser_take_screenshot`: capture visual state
+- `browser_console_messages`: inspect browser console for JS errors
+- **Use this MCP to test `pages/llmlimit/` frontend changes** — open the AstrBot dashboard at `http://localhost:6185`, navigate to the plugin page at `/api/plugin/page/content/astrbot_plugin_llmlimit/llmlimit/`, and verify UI behavior.
+
+### agent-lsp (LSP agent)
+
+- Provides language server protocol diagnostics (completions, hover, go-to-definition)
+- **Use this MCP for code navigation and understanding** — cross-references, type info, and jump-to-definition.
+
+When these MCP tools are available, prefer them over raw Bash grep/find/cat commands for code exploration and UI testing.
