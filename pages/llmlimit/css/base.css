@@ -122,7 +122,9 @@ body {
 .confirm-dialog-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000;
   display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
+.confirm-dialog-overlay.visible { opacity: 1; pointer-events: auto; }
 .confirm-dialog {
   background: white; border-radius: 14px; padding: 28px;
   width: 380px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
