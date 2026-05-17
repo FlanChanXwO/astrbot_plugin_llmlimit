@@ -30,7 +30,7 @@ class Limiter:
         self,
         user_id: str,
         group_id: str | None = None,
-    ) -> "LimiterDecision":
+    ) -> LimiterDecision:
         """
         对一次 LLM 请求执行完整的限制决策。
 

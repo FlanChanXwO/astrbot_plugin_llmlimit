@@ -78,3 +78,14 @@ Period keys are date-based (daily: `YYYY-MM-DD`, weekly: `YYYY-Www`, monthly: `Y
 - `@filter.command_group` decorator: non-async, no params (Dashboard compatibility)
 - Plugin version bump: update `main.py` `@register(...)` decorator, `metadata.yaml`, and `CHANGELOG.md`
 - Releases: automatic via `release-from-changelog.yml` GitHub Actions workflow on CHANGELOG.md push to master
+
+### Ruff
+
+- **每次修改 Python 文件后必须运行** `ruff check .` 确保 0 errors
+- **提交前运行** `ruff check . --fix` 自动修复可修复的问题
+- Target version: Python 3.12，默认规则集
+- 已确认的误报豁免（6 × E402，`ruff --fix` 已自动修复 UP037 和 F401）：
+  - `core/config_manager.py:9: E402` ← `from __future__ import annotations` 在模块 docstring 前，符合 Python 规范
+  - `core/limiter.py:9-11: E402` ← 同上
+  - `core/time_period_manager.py:9: E402` ← 同上
+  - `core/usage_tracker.py:9: E402` ← 同上
