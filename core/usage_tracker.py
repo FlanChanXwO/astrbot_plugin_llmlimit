@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 用量追踪模块
 

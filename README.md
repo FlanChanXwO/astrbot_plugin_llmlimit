@@ -21,8 +21,6 @@
 data/plugins/astrbot_plugin_llmlimit/
 ```
 
-依赖：`astrbot>=4.9.2`
-
 ## 配置
 
 在 AstrBot 插件配置界面中配置，或在 `_conf_schema.json` 中查看完整配置项。

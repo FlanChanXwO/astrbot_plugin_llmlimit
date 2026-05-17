@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 核心限制逻辑模块
 
