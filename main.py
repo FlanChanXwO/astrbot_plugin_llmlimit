@@ -126,7 +126,7 @@ class LLMLimitPlugin(Star):
     # ── 管理命令 ─────────────────────────────────────────────────
 
     @filter.command_group("limit_admin")
-    async def cmd_limit_admin(self, event: AstrMessageEvent):
+    def cmd_limit_admin(self):
         """管理命令入口 (需要 ADMIN 权限) — 使用子命令管理限制"""
         pass
 
