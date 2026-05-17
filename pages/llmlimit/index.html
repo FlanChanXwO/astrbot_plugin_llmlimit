@@ -13,223 +13,160 @@
     <link rel="stylesheet" href="./css/dark-theme.css"/>
 </head>
 <body>
-<div class="container" v-scope>
+<div class="container" id="app">
     <main class="main">
         <div class="section-header">
             <h2>⚡ LLM 调用限制管理</h2>
-            <button class="btn btn-text" @click="theme.toggle()">
-                {{ theme.mode === 'dark' ? '☀️ 浅色' : '🌙 深色' }}
-            </button>
+            <button class="btn btn-text" id="themeToggle">🌙 深色</button>
         </div>
 
         <!-- Tab 导航 -->
-        <div class="tabs">
-            <button class="tab-btn" :class="{ active: activeTab === 'users' }" @click="activeTab = 'users'">👤 用户限制</button>
-            <button class="tab-btn" :class="{ active: activeTab === 'groups' }" @click="activeTab = 'groups'">👥 群组限制</button>
-            <button class="tab-btn" :class="{ active: activeTab === 'periods' }" @click="activeTab = 'periods'">🕐 时间段限制</button>
+        <div class="tabs" id="tabBar">
+            <button class="tab-btn active" data-tab="users">👤 用户限制</button>
+            <button class="tab-btn" data-tab="groups">👥 群组限制</button>
+            <button class="tab-btn" data-tab="periods">🕐 时间段限制</button>
         </div>
 
         <!-- 用户限制 -->
-        <section v-if="activeTab === 'users'">
+        <section id="tabUsers" class="tab-section">
             <div class="section-header">
                 <h4>用户特定限制（覆盖默认限额）</h4>
-                <button class="btn btn-primary" @click="openUserPanel()"><span class="icon">+</span> 添加用户</button>
+                <button class="btn btn-primary" id="btnAddUser"><span class="icon">+</span> 添加用户</button>
             </div>
-            <div class="item-list">
-                <div v-if="userLimits.length === 0" class="empty-state">
-                    <p>暂无用户特定限制，点击「添加用户」开始配置。</p>
-                </div>
-                <div v-for="(item, i) in userLimits" :key="i" class="item-row">
-                    <div class="item-info">
-                        <div class="item-name">
-                            {{ item.userId }}
-                            <span class="item-badge badge-primary">{{ item.limit }} 次/日</span>
-                        </div>
-                        <div class="item-meta">用户ID: {{ item.userId }}</div>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn btn-sm btn-secondary" @click="openUserPanel(i)">编辑</button>
-                        <button class="btn btn-sm btn-danger-outline" @click="removeUser(i)">删除</button>
-                    </div>
-                </div>
-            </div>
+            <div class="item-list" id="userList"></div>
         </section>
 
         <!-- 群组限制 -->
-        <section v-if="activeTab === 'groups'">
+        <section id="tabGroups" class="tab-section" hidden>
             <div class="section-header">
                 <h4>群组特定限制（覆盖默认限额）</h4>
-                <button class="btn btn-primary" @click="openGroupPanel()"><span class="icon">+</span> 添加群组</button>
+                <button class="btn btn-primary" id="btnAddGroup"><span class="icon">+</span> 添加群组</button>
             </div>
-            <div class="item-list">
-                <div v-if="groupLimits.length === 0" class="empty-state">
-                    <p>暂无群组特定限制，点击「添加群组」开始配置。</p>
-                </div>
-                <div v-for="(item, i) in groupLimits" :key="i" class="item-row">
-                    <div class="item-info">
-                        <div class="item-name">
-                            {{ item.groupId }}
-                            <span class="item-badge badge-success">{{ item.limit }} 次/日</span>
-                        </div>
-                        <div class="item-meta">群ID: {{ item.groupId }}</div>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn btn-sm btn-secondary" @click="openGroupPanel(i)">编辑</button>
-                        <button class="btn btn-sm btn-danger-outline" @click="removeGroup(i)">删除</button>
-                    </div>
-                </div>
-            </div>
+            <div class="item-list" id="groupList"></div>
         </section>
 
         <!-- 时间段限制 -->
-        <section v-if="activeTab === 'periods'">
+        <section id="tabPeriods" class="tab-section" hidden>
             <div class="section-header">
                 <h4>自定义时间段限制</h4>
-                <button class="btn btn-primary" @click="openPeriodPanel()"><span class="icon">+</span> 添加时段</button>
+                <button class="btn btn-primary" id="btnAddPeriod"><span class="icon">+</span> 添加时段</button>
             </div>
-            <div class="item-list">
-                <div v-if="timePeriodLimits.length === 0" class="empty-state">
-                    <p>暂无时间段限制，点击「添加时段」开始配置。</p>
-                </div>
-                <div v-for="(item, i) in timePeriodLimits" :key="i" class="item-row">
-                    <div class="item-info">
-                        <div class="item-name">
-                            {{ item.startTime }} – {{ item.endTime }}
-                            <span class="item-badge" :class="item.enabled ? 'badge-primary' : 'badge-warning'">
-                                {{ item.limit }} 次
-                            </span>
-                            <span v-if="!item.enabled" class="item-badge badge-warning">已停用</span>
-                        </div>
-                        <div class="item-meta">
-                            时段 {{ item.startTime }}–{{ item.endTime }}，上限 {{ item.limit }} 次
-                            <span v-if="!item.enabled">（已禁用）</span>
-                        </div>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn btn-sm btn-secondary" @click="openPeriodPanel(i)">编辑</button>
-                        <button class="btn btn-sm btn-danger-outline" @click="removePeriod(i)">删除</button>
-                    </div>
-                </div>
-            </div>
+            <div class="item-list" id="periodList"></div>
         </section>
     </main>
 
     <!-- 面板遮罩 -->
-    <div class="panel-overlay" :class="{ visible: panelVisible }" @click="closePanel()"></div>
+    <div class="panel-overlay" id="panelOverlay"></div>
 
     <!-- 编辑面板 -->
-    <section class="edit-panel" :class="{ 'panel-visible': panelVisible }">
+    <section class="edit-panel" id="editPanel">
         <div class="panel-header">
-            <h3>
-                <span v-if="activeTab === 'users'">{{ editingUserIndex >= 0 ? '编辑用户限制' : '添加用户限制' }}</span>
-                <span v-else-if="activeTab === 'groups'">{{ editingGroupIndex >= 0 ? '编辑群组限制' : '添加群组限制' }}</span>
-                <span v-else>{{ editingPeriodIndex >= 0 ? '编辑时间段' : '添加时间段' }}</span>
-            </h3>
+            <h3 id="panelTitle"></h3>
             <div class="panel-actions">
-                <button class="btn btn-icon" @click="closePanel">×</button>
+                <button class="btn btn-icon" id="panelClose">×</button>
             </div>
         </div>
-
         <div class="panel-body">
             <!-- 用户限制表单 -->
-            <form v-if="activeTab === 'users'" class="form" @submit.prevent="saveUser">
+            <form class="form" id="userForm">
                 <div class="form-group">
                     <label>用户ID <span class="required">*</span></label>
                     <div class="input-wrapper">
-                        <input type="text" v-model="userForm.userId" placeholder="例如: 123456789" required/>
+                        <input type="text" id="inputUserId" placeholder="例如: 123456789" required/>
                     </div>
                     <span class="hint">用户的唯一标识，如 AstrBot 中的 sender_id。</span>
                 </div>
                 <div class="form-group">
                     <label>每日限制次数 <span class="required">*</span></label>
                     <div class="input-wrapper">
-                        <input type="number" v-model.number="userForm.limit" min="1" placeholder="例如: 100" required/>
+                        <input type="number" id="inputUserLimit" min="1" placeholder="例如: 100" required/>
                     </div>
                     <span class="hint">该用户每天可调用 LLM 的最大次数。覆盖默认日限。</span>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-text" @click="closePanel">取消</button>
-                    <button type="submit" class="btn btn-primary">{{ editingUserIndex >= 0 ? '更新' : '添加' }}</button>
+                    <button type="button" class="btn btn-text" id="userFormCancel">取消</button>
+                    <button type="submit" class="btn btn-primary" id="userFormSubmit">添加</button>
                 </div>
             </form>
 
             <!-- 群组限制表单 -->
-            <form v-else-if="activeTab === 'groups'" class="form" @submit.prevent="saveGroup">
+            <form class="form" id="groupForm" hidden>
                 <div class="form-group">
                     <label>群ID <span class="required">*</span></label>
                     <div class="input-wrapper">
-                        <input type="text" v-model="groupForm.groupId" placeholder="例如: 123456" required/>
+                        <input type="text" id="inputGroupId" placeholder="例如: 123456" required/>
                     </div>
                     <span class="hint">群组的唯一标识，如 AstrBot 中的 group_id。</span>
                 </div>
                 <div class="form-group">
                     <label>每日限制次数 <span class="required">*</span></label>
                     <div class="input-wrapper">
-                        <input type="number" v-model.number="groupForm.limit" min="1" placeholder="例如: 50" required/>
+                        <input type="number" id="inputGroupLimit" min="1" placeholder="例如: 50" required/>
                     </div>
                     <span class="hint">该群每天可调用 LLM 的最大次数。覆盖默认日限。</span>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-text" @click="closePanel">取消</button>
-                    <button type="submit" class="btn btn-primary">{{ editingGroupIndex >= 0 ? '更新' : '添加' }}</button>
+                    <button type="button" class="btn btn-text" id="groupFormCancel">取消</button>
+                    <button type="submit" class="btn btn-primary" id="groupFormSubmit">添加</button>
                 </div>
             </form>
 
             <!-- 时间段限制表单 -->
-            <form v-else class="form" @submit.prevent="savePeriod">
+            <form class="form" id="periodForm" hidden>
                 <div class="form-row form-row-3">
                     <div class="form-group">
                         <label>开始时间 <span class="required">*</span></label>
                         <div class="input-wrapper">
-                            <input type="time" v-model="periodForm.start" required/>
+                            <input type="time" id="inputPeriodStart" required/>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>结束时间 <span class="required">*</span></label>
                         <div class="input-wrapper">
-                            <input type="time" v-model="periodForm.end" required/>
+                            <input type="time" id="inputPeriodEnd" required/>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>限制次数 <span class="required">*</span></label>
                         <div class="input-wrapper">
-                            <input type="number" v-model.number="periodForm.limit" min="1" placeholder="5" required/>
+                            <input type="number" id="inputPeriodLimit" min="1" placeholder="5" required/>
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="toggle-switch" style="display: inline-flex;">
-                        <input type="checkbox" v-model="periodForm.enabled"/>
+                        <input type="checkbox" id="inputPeriodEnabled"/>
                         <span class="toggle-slider"></span>
-                        <span class="toggle-label">{{ periodForm.enabled ? '启用' : '停用' }}</span>
+                        <span class="toggle-label" id="periodToggleLabel">启用</span>
                     </label>
                     <span class="hint" style="margin-left: 50px;">停用后该时间段限制不生效，但不删除配置。</span>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-text" @click="closePanel">取消</button>
-                    <button type="submit" class="btn btn-primary">{{ editingPeriodIndex >= 0 ? '更新' : '添加' }}</button>
+                    <button type="button" class="btn btn-text" id="periodFormCancel">取消</button>
+                    <button type="submit" class="btn btn-primary" id="periodFormSubmit">添加</button>
                 </div>
             </form>
         </div>
     </section>
 
     <!-- Toast 通知 -->
-    <div class="toast" :class="[toast.type, { show: toast.show }]" v-if="toast.show">{{ toast.message }}</div>
+    <div class="toast" id="toast"></div>
 
     <!-- 确认对话框 -->
-    <div class="confirm-dialog-overlay" v-if="dialog.show">
+    <div class="confirm-dialog-overlay" id="confirmOverlay">
         <div class="confirm-dialog">
-            <h4>{{ dialog.title }}</h4>
-            <p>{{ dialog.message }}</p>
+            <h4 id="confirmTitle"></h4>
+            <p id="confirmMsg"></p>
             <div class="confirm-dialog-actions">
-                <button class="btn btn-secondary" @click="dialog.resolve(false); dialog.show = false">取消</button>
-                <button class="btn btn-danger" @click="dialog.resolve(true); dialog.show = false">{{ dialog.okText }}</button>
+                <button class="btn btn-secondary" id="confirmCancel">取消</button>
+                <button class="btn btn-danger" id="confirmOk">确定</button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="./lib/petite-vue.iife.js"></script>
-<script type="module" src="./app.js"></script>
+<script src="./js/api.js"></script>
+<script src="./js/theme.js"></script>
+<script src="./app.js"></script>
 </body>
 </html>

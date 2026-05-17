@@ -1,16 +1,71 @@
-import * as api from './api.js';
+const api = window.ApiModule;
 
-let toastTimer = null;
+// ── State ────────────────────────────────────────────────────────────
 
-// ── lifecycle ──────────────────────────────────────────────────────
+const state = {
+  activeTab: 'users',
+  userLimits: [],
+  groupLimits: [],
+  timePeriodLimits: [],
+  editingUserIndex: -1,
+  editingGroupIndex: -1,
+  editingPeriodIndex: -1,
+  panelVisible: false,
+  toastTimer: null,
+  confirmResolve: null,
+};
 
-function ready() {
-  return api.ready().then(() => {
-    loadAll();
-  });
+// ── DOM refs ─────────────────────────────────────────────────────────
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+const dom = {
+  tabBar: $('#tabBar'),
+  tabUsers: $('#tabUsers'),
+  tabGroups: $('#tabGroups'),
+  tabPeriods: $('#tabPeriods'),
+  userList: $('#userList'),
+  groupList: $('#groupList'),
+  periodList: $('#periodList'),
+  panelOverlay: $('#panelOverlay'),
+  editPanel: $('#editPanel'),
+  panelTitle: $('#panelTitle'),
+  panelClose: $('#panelClose'),
+  userForm: $('#userForm'),
+  groupForm: $('#groupForm'),
+  periodForm: $('#periodForm'),
+  inputUserId: $('#inputUserId'),
+  inputUserLimit: $('#inputUserLimit'),
+  inputGroupId: $('#inputGroupId'),
+  inputGroupLimit: $('#inputGroupLimit'),
+  inputPeriodStart: $('#inputPeriodStart'),
+  inputPeriodEnd: $('#inputPeriodEnd'),
+  inputPeriodLimit: $('#inputPeriodLimit'),
+  inputPeriodEnabled: $('#inputPeriodEnabled'),
+  periodToggleLabel: $('#periodToggleLabel'),
+  toast: $('#toast'),
+  confirmOverlay: $('#confirmOverlay'),
+  confirmTitle: $('#confirmTitle'),
+  confirmMsg: $('#confirmMsg'),
+  confirmOk: $('#confirmOk'),
+  confirmCancel: $('#confirmCancel'),
+  themeToggle: $('#themeToggle'),
+  btnAddUser: $('#btnAddUser'),
+  btnAddGroup: $('#btnAddGroup'),
+  btnAddPeriod: $('#btnAddPeriod'),
+};
+
+// ── Lifecycle ────────────────────────────────────────────────────────
+
+async function ready() {
+  await api.ready();
+  initTheme();
+  bindEvents();
+  await loadAll();
 }
 
-// ── data loading ───────────────────────────────────────────────────
+// ── Data loading ─────────────────────────────────────────────────────
 
 async function loadAll() {
   try {
@@ -19,251 +74,434 @@ async function loadAll() {
       api.getGroupLimits(),
       api.getTimePeriodLimits(),
     ]);
-    store.userLimits = users || [];
-    store.groupLimits = groups || [];
-    store.timePeriodLimits = timePeriods || [];
+    state.userLimits = users || [];
+    state.groupLimits = groups || [];
+    state.timePeriodLimits = timePeriods || [];
+    renderLists();
   } catch (err) {
     showToast('加载失败: ' + err.message, 'error');
   }
 }
 
-// ── CRUD helpers ───────────────────────────────────────────────────
+// ── Render ───────────────────────────────────────────────────────────
 
-function showToast(message, type = 'success') {
-  store.toast = { show: true, message, type };
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    store.toast.show = false;
+function renderLists() {
+  renderUserList();
+  renderGroupList();
+  renderPeriodList();
+}
+
+function renderUserList() {
+  const list = state.userLimits;
+  if (list.length === 0) {
+    dom.userList.innerHTML = '<div class="empty-state"><p>暂无用户特定限制，点击「添加用户」开始配置。</p></div>';
+    return;
+  }
+  dom.userList.innerHTML = list.map((item, i) => `
+    <div class="item-row">
+      <div class="item-info">
+        <div class="item-name">
+          ${escHtml(item.userId)}
+          <span class="item-badge badge-primary">${escHtml(item.limit)} 次/日</span>
+        </div>
+        <div class="item-meta">用户ID: ${escHtml(item.userId)}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-sm btn-secondary" data-action="edit-user" data-index="${i}">编辑</button>
+        <button class="btn btn-sm btn-danger-outline" data-action="delete-user" data-index="${i}">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderGroupList() {
+  const list = state.groupLimits;
+  if (list.length === 0) {
+    dom.groupList.innerHTML = '<div class="empty-state"><p>暂无群组特定限制，点击「添加群组」开始配置。</p></div>';
+    return;
+  }
+  dom.groupList.innerHTML = list.map((item, i) => `
+    <div class="item-row">
+      <div class="item-info">
+        <div class="item-name">
+          ${escHtml(item.groupId)}
+          <span class="item-badge badge-success">${escHtml(item.limit)} 次/日</span>
+        </div>
+        <div class="item-meta">群ID: ${escHtml(item.groupId)}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-sm btn-secondary" data-action="edit-group" data-index="${i}">编辑</button>
+        <button class="btn btn-sm btn-danger-outline" data-action="delete-group" data-index="${i}">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPeriodList() {
+  const list = state.timePeriodLimits;
+  if (list.length === 0) {
+    dom.periodList.innerHTML = '<div class="empty-state"><p>暂无时间段限制，点击「添加时段」开始配置。</p></div>';
+    return;
+  }
+  dom.periodList.innerHTML = list.map((item, i) => `
+    <div class="item-row">
+      <div class="item-info">
+        <div class="item-name">
+          ${escHtml(item.startTime)} – ${escHtml(item.endTime)}
+          <span class="item-badge ${item.enabled ? 'badge-primary' : 'badge-warning'}">${escHtml(item.limit)} 次</span>
+          ${item.enabled ? '' : '<span class="item-badge badge-warning">已停用</span>'}
+        </div>
+        <div class="item-meta">
+          时段 ${escHtml(item.startTime)}–${escHtml(item.endTime)}，上限 ${escHtml(item.limit)} 次
+          ${item.enabled ? '' : '（已禁用）'}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-sm btn-secondary" data-action="edit-period" data-index="${i}">编辑</button>
+        <button class="btn btn-sm btn-danger-outline" data-action="delete-period" data-index="${i}">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Tab switching ────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  $$('.tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  dom.tabUsers.hidden = tab !== 'users';
+  dom.tabGroups.hidden = tab !== 'groups';
+  dom.tabPeriods.hidden = tab !== 'periods';
+}
+
+// ── Panel ────────────────────────────────────────────────────────────
+
+function openUserPanel(index) {
+  state.editingUserIndex = index;
+  state.editingGroupIndex = -1;
+  state.editingPeriodIndex = -1;
+  if (index >= 0) {
+    const item = state.userLimits[index];
+    dom.inputUserId.value = item.userId || '';
+    dom.inputUserLimit.value = item.limit || '';
+    dom.panelTitle.textContent = '编辑用户限制';
+    $('#userFormSubmit').textContent = '更新';
+  } else {
+    dom.inputUserId.value = '';
+    dom.inputUserLimit.value = '';
+    dom.panelTitle.textContent = '添加用户限制';
+    $('#userFormSubmit').textContent = '添加';
+  }
+  showPanel('userForm');
+}
+
+function openGroupPanel(index) {
+  state.editingGroupIndex = index;
+  state.editingUserIndex = -1;
+  state.editingPeriodIndex = -1;
+  if (index >= 0) {
+    const item = state.groupLimits[index];
+    dom.inputGroupId.value = item.groupId || '';
+    dom.inputGroupLimit.value = item.limit || '';
+    dom.panelTitle.textContent = '编辑群组限制';
+    $('#groupFormSubmit').textContent = '更新';
+  } else {
+    dom.inputGroupId.value = '';
+    dom.inputGroupLimit.value = '';
+    dom.panelTitle.textContent = '添加群组限制';
+    $('#groupFormSubmit').textContent = '添加';
+  }
+  showPanel('groupForm');
+}
+
+function openPeriodPanel(index) {
+  state.editingPeriodIndex = index;
+  state.editingUserIndex = -1;
+  state.editingGroupIndex = -1;
+  if (index >= 0) {
+    const p = state.timePeriodLimits[index];
+    dom.inputPeriodStart.value = p.startTime;
+    dom.inputPeriodEnd.value = p.endTime;
+    dom.inputPeriodLimit.value = p.limit;
+    dom.inputPeriodEnabled.checked = p.enabled;
+    updatePeriodToggleLabel();
+    dom.panelTitle.textContent = '编辑时间段';
+    $('#periodFormSubmit').textContent = '更新';
+  } else {
+    dom.inputPeriodStart.value = '09:00';
+    dom.inputPeriodEnd.value = '12:00';
+    dom.inputPeriodLimit.value = '5';
+    dom.inputPeriodEnabled.checked = true;
+    updatePeriodToggleLabel();
+    dom.panelTitle.textContent = '添加时间段';
+    $('#periodFormSubmit').textContent = '添加';
+  }
+  showPanel('periodForm');
+}
+
+function showPanel(formId) {
+  dom.userForm.hidden = formId !== 'userForm';
+  dom.groupForm.hidden = formId !== 'groupForm';
+  dom.periodForm.hidden = formId !== 'periodForm';
+  dom.editPanel.classList.add('panel-visible');
+  dom.panelOverlay.classList.add('visible');
+  state.panelVisible = true;
+}
+
+function closePanel() {
+  dom.editPanel.classList.remove('panel-visible');
+  dom.panelOverlay.classList.remove('visible');
+  state.panelVisible = false;
+  state.editingUserIndex = -1;
+  state.editingGroupIndex = -1;
+  state.editingPeriodIndex = -1;
+}
+
+// ── CRUD: users ──────────────────────────────────────────────────────
+
+async function saveUser(e) {
+  e.preventDefault();
+  const userId = dom.inputUserId.value.trim();
+  const limit = parseInt(dom.inputUserLimit.value, 10);
+  if (!userId) { showToast('用户ID不能为空', 'error'); return; }
+  if (isNaN(limit) || limit <= 0) { showToast('请输入有效的次数（正整数）', 'error'); return; }
+  try {
+    if (state.editingUserIndex >= 0) {
+      await api.updateUserLimit(state.editingUserIndex, { userId, limit });
+      showToast('用户限制已更新');
+    } else {
+      await api.createUserLimit({ userId, limit });
+      showToast('用户限制已添加');
+    }
+    closePanel();
+    await loadAll();
+  } catch (err) {
+    showToast('保存失败: ' + err.message, 'error');
+  }
+}
+
+async function deleteUser(index) {
+  const item = state.userLimits[index];
+  if (!item) return;
+  const ok = await confirmDialog('确认删除', `确定要删除用户 ${item.userId} 的限制吗？`);
+  if (!ok) return;
+  try {
+    await api.deleteUserLimit(index);
+    showToast('用户限制已删除');
+    await loadAll();
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
+// ── CRUD: groups ─────────────────────────────────────────────────────
+
+async function saveGroup(e) {
+  e.preventDefault();
+  const groupId = dom.inputGroupId.value.trim();
+  const limit = parseInt(dom.inputGroupLimit.value, 10);
+  if (!groupId) { showToast('群ID不能为空', 'error'); return; }
+  if (isNaN(limit) || limit <= 0) { showToast('请输入有效的次数（正整数）', 'error'); return; }
+  try {
+    if (state.editingGroupIndex >= 0) {
+      await api.updateGroupLimit(state.editingGroupIndex, { groupId, limit });
+      showToast('群组限制已更新');
+    } else {
+      await api.createGroupLimit({ groupId, limit });
+      showToast('群组限制已添加');
+    }
+    closePanel();
+    await loadAll();
+  } catch (err) {
+    showToast('保存失败: ' + err.message, 'error');
+  }
+}
+
+async function deleteGroup(index) {
+  const item = state.groupLimits[index];
+  if (!item) return;
+  const ok = await confirmDialog('确认删除', `确定要删除群 ${item.groupId} 的限制吗？`);
+  if (!ok) return;
+  try {
+    await api.deleteGroupLimit(index);
+    showToast('群组限制已删除');
+    await loadAll();
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
+// ── CRUD: time periods ───────────────────────────────────────────────
+
+async function savePeriod(e) {
+  e.preventDefault();
+  const start = dom.inputPeriodStart.value;
+  const end = dom.inputPeriodEnd.value;
+  const limit = parseInt(dom.inputPeriodLimit.value, 10);
+  const enabled = dom.inputPeriodEnabled.checked;
+  if (!start || !end) { showToast('请填写开始时间和结束时间', 'error'); return; }
+  if (isNaN(limit) || limit <= 0) { showToast('请输入有效的次数（正整数）', 'error'); return; }
+  try {
+    const body = { startTime: start, endTime: end, limit, enabled };
+    if (state.editingPeriodIndex >= 0) {
+      await api.updateTimePeriod(state.editingPeriodIndex, body);
+      showToast('时间段已更新');
+    } else {
+      await api.createTimePeriod(body);
+      showToast('时间段已添加');
+    }
+    closePanel();
+    await loadAll();
+  } catch (err) {
+    showToast('保存失败: ' + err.message, 'error');
+  }
+}
+
+async function deletePeriod(index) {
+  const item = state.timePeriodLimits[index];
+  if (!item) return;
+  const label = `${item.startTime}-${item.endTime} (${item.limit}次)`;
+  const ok = await confirmDialog('确认删除', `确定要删除时间段 ${label} 吗？`);
+  if (!ok) return;
+  try {
+    await api.deleteTimePeriod(index);
+    showToast('时间段已删除');
+    await loadAll();
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
+// ── Toast ────────────────────────────────────────────────────────────
+
+function showToast(message, type) {
+  type = type || 'success';
+  dom.toast.textContent = message;
+  dom.toast.className = 'toast ' + type + ' show';
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => {
+    dom.toast.classList.remove('show');
   }, 3000);
 }
 
+// ── Confirm dialog ───────────────────────────────────────────────────
+
 function confirmDialog(title, message) {
   return new Promise((resolve) => {
-    store.dialog = { show: true, title, message, okText: '确定', okClass: 'btn-danger', resolve };
+    dom.confirmTitle.textContent = title;
+    dom.confirmMsg.textContent = message;
+    dom.confirmOverlay.classList.add('visible');
+    state.confirmResolve = resolve;
   });
 }
 
-// ── reactive store ─────────────────────────────────────────────────
+function closeConfirm(res) {
+  dom.confirmOverlay.classList.remove('visible');
+  if (state.confirmResolve) {
+    state.confirmResolve(res);
+    state.confirmResolve = null;
+  }
+}
 
-const store = PetiteVue.reactive({
-  // tabs
-  activeTab: 'users',
+// ── Theme ────────────────────────────────────────────────────────────
 
-  // data
-  userLimits: [],
-  groupLimits: [],
-  timePeriodLimits: [],
+function initTheme() {
+  if (typeof initThemeNative === 'function') {
+    initThemeNative();
+  }
+  updateThemeLabel();
+}
 
-  // user limit form
-  userForm: { userId: '', limit: '' },
-  editingUserIndex: -1,
+function toggleTheme() {
+  if (typeof toggleThemeNative === 'function') {
+    toggleThemeNative();
+  }
+  updateThemeLabel();
+}
 
-  // group limit form
-  groupForm: { groupId: '', limit: '' },
-  editingGroupIndex: -1,
+function updateThemeLabel() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  dom.themeToggle.textContent = dark ? '☀️ 浅色' : '🌙 深色';
+}
 
-  // time period form
-  periodForm: { start: '09:00', end: '12:00', limit: '5', enabled: true },
-  editingPeriodIndex: -1,
+// ── Helpers ──────────────────────────────────────────────────────────
 
-  // panel
-  panelVisible: false,
-  panelExpanded: false,
+function escHtml(str) {
+  const div = document.createElement('span');
+  div.textContent = str;
+  return div.innerHTML;
+}
 
-  // dialog
-  dialog: { show: false, title: '', message: '', okText: '确定', okClass: 'btn-danger', resolve: null },
+function updatePeriodToggleLabel() {
+  dom.periodToggleLabel.textContent = dom.inputPeriodEnabled.checked ? '启用' : '停用';
+}
 
-  // toast
-  toast: { show: false, message: '', type: 'success' },
+// ── Event binding ────────────────────────────────────────────────────
 
-  // ── user limit actions ──
-  openUserPanel(index = -1) {
-    this.editingUserIndex = index;
-    if (index >= 0) {
-      this.userForm = {
-        userId: this.userLimits[index].userId || '',
-        limit: this.userLimits[index].limit || '',
-      };
-    } else {
-      this.userForm = { userId: '', limit: '' };
-    }
-    this.panelVisible = true;
-    this.panelExpanded = false;
-  },
+function bindEvents() {
+  // Tabs
+  dom.tabBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-tab]');
+    if (btn) switchTab(btn.dataset.tab);
+  });
 
-  async saveUser() {
-    const { userId, limit } = this.userForm;
-    if (!userId.trim()) {
-      showToast('用户ID不能为空', 'error');
-      return;
-    }
-    const lim = parseInt(limit, 10);
-    if (isNaN(lim) || lim <= 0) {
-      showToast('请输入有效的次数（正整数）', 'error');
-      return;
-    }
+  // Theme
+  dom.themeToggle.addEventListener('click', toggleTheme);
 
-    try {
-      if (this.editingUserIndex >= 0) {
-        await api.updateUserLimit(this.editingUserIndex, { userId: userId.trim(), limit: lim });
-        showToast('用户限制已更新');
-      } else {
-        await api.createUserLimit({ userId: userId.trim(), limit: lim });
-        showToast('用户限制已添加');
-      }
-      this.panelVisible = false;
-      await loadAll();
-    } catch (err) {
-      showToast('保存失败: ' + err.message, 'error');
-    }
-  },
+  // Panel
+  dom.panelClose.addEventListener('click', closePanel);
+  dom.panelOverlay.addEventListener('click', closePanel);
 
-  async removeUser(index) {
-    const item = this.userLimits[index];
-    if (!item) return;
-    const ok = await confirmDialog('确认删除', `确定要删除用户 ${item.userId} 的限制吗？`);
-    if (!ok) return;
-    try {
-      await api.deleteUserLimit(index);
-      showToast('用户限制已删除');
-      await loadAll();
-    } catch (err) {
-      showToast('删除失败: ' + err.message, 'error');
-    }
-  },
+  // Add buttons
+  dom.btnAddUser.addEventListener('click', () => openUserPanel(-1));
+  dom.btnAddGroup.addEventListener('click', () => openGroupPanel(-1));
+  dom.btnAddPeriod.addEventListener('click', () => openPeriodPanel(-1));
 
-  // ── group limit actions ──
-  openGroupPanel(index = -1) {
-    this.editingGroupIndex = index;
-    if (index >= 0) {
-      this.groupForm = {
-        groupId: this.groupLimits[index].groupId || '',
-        limit: this.groupLimits[index].limit || '',
-      };
-    } else {
-      this.groupForm = { groupId: '', limit: '' };
-    }
-    this.panelVisible = true;
-    this.panelExpanded = false;
-  },
+  // Form submissions
+  dom.userForm.addEventListener('submit', saveUser);
+  dom.groupForm.addEventListener('submit', saveGroup);
+  dom.periodForm.addEventListener('submit', savePeriod);
 
-  async saveGroup() {
-    const { groupId, limit } = this.groupForm;
-    if (!groupId.trim()) {
-      showToast('群ID不能为空', 'error');
-      return;
-    }
-    const lim = parseInt(limit, 10);
-    if (isNaN(lim) || lim <= 0) {
-      showToast('请输入有效的次数（正整数）', 'error');
-      return;
-    }
+  // Form cancel buttons
+  $('#userFormCancel').addEventListener('click', closePanel);
+  $('#groupFormCancel').addEventListener('click', closePanel);
+  $('#periodFormCancel').addEventListener('click', closePanel);
 
-    try {
-      if (this.editingGroupIndex >= 0) {
-        await api.updateGroupLimit(this.editingGroupIndex, { groupId: groupId.trim(), limit: lim });
-        showToast('群组限制已更新');
-      } else {
-        await api.createGroupLimit({ groupId: groupId.trim(), limit: lim });
-        showToast('群组限制已添加');
-      }
-      this.panelVisible = false;
-      await loadAll();
-    } catch (err) {
-      showToast('保存失败: ' + err.message, 'error');
-    }
-  },
+  // Period enabled toggle label
+  dom.inputPeriodEnabled.addEventListener('change', updatePeriodToggleLabel);
 
-  async removeGroup(index) {
-    const item = this.groupLimits[index];
-    if (!item) return;
-    const ok = await confirmDialog('确认删除', `确定要删除群 ${item.groupId} 的限制吗？`);
-    if (!ok) return;
-    try {
-      await api.deleteGroupLimit(index);
-      showToast('群组限制已删除');
-      await loadAll();
-    } catch (err) {
-      showToast('删除失败: ' + err.message, 'error');
-    }
-  },
+  // Confirm dialog
+  dom.confirmOk.addEventListener('click', () => closeConfirm(true));
+  dom.confirmCancel.addEventListener('click', () => closeConfirm(false));
 
-  // ── time period actions ──
-  openPeriodPanel(index = -1) {
-    this.editingPeriodIndex = index;
-    if (index >= 0) {
-      const p = this.timePeriodLimits[index];
-      this.periodForm = { start: p.startTime, end: p.endTime, limit: String(p.limit), enabled: p.enabled };
-    } else {
-      this.periodForm = { start: '09:00', end: '12:00', limit: '5', enabled: true };
-    }
-    this.panelVisible = true;
-    this.panelExpanded = false;
-  },
+  // List item delegation (edit / delete)
+  dom.userList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.index, 10);
+    if (btn.dataset.action === 'edit-user') openUserPanel(idx);
+    else if (btn.dataset.action === 'delete-user') deleteUser(idx);
+  });
 
-  async savePeriod() {
-    const { start, end, limit, enabled } = this.periodForm;
-    const lim = parseInt(limit, 10);
-    if (isNaN(lim) || lim <= 0) {
-      showToast('请输入有效的次数（正整数）', 'error');
-      return;
-    }
+  dom.groupList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.index, 10);
+    if (btn.dataset.action === 'edit-group') openGroupPanel(idx);
+    else if (btn.dataset.action === 'delete-group') deleteGroup(idx);
+  });
 
-    try {
-      if (this.editingPeriodIndex >= 0) {
-        await api.updateTimePeriod(this.editingPeriodIndex, { startTime: start, endTime: end, limit: lim, enabled });
-        showToast('时间段已更新');
-      } else {
-        await api.createTimePeriod({ startTime: start, endTime: end, limit: lim, enabled });
-        showToast('时间段已添加');
-      }
-      this.panelVisible = false;
-      await loadAll();
-    } catch (err) {
-      showToast('保存失败: ' + err.message, 'error');
-    }
-  },
+  dom.periodList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.index, 10);
+    if (btn.dataset.action === 'edit-period') openPeriodPanel(idx);
+    else if (btn.dataset.action === 'delete-period') deletePeriod(idx);
+  });
+}
 
-  async removePeriod(index) {
-    const item = this.timePeriodLimits[index];
-    if (!item) return;
-    const label = `${item.startTime}-${item.endTime} (${item.limit}次)`;
-    const ok = await confirmDialog('确认删除', `确定要删除时间段 ${label} 吗？`);
-    if (!ok) return;
-    try {
-      await api.deleteTimePeriod(index);
-      showToast('时间段已删除');
-      await loadAll();
-    } catch (err) {
-      showToast('删除失败: ' + err.message, 'error');
-    }
-  },
+// ── Bootstrap ────────────────────────────────────────────────────────
 
-  // ── panel ──
-  closePanel() {
-    this.panelVisible = false;
-    this.editingUserIndex = -1;
-    this.editingGroupIndex = -1;
-    this.editingPeriodIndex = -1;
-  },
-
-  toggleExpand() {
-    this.panelExpanded = !this.panelExpanded;
-  },
-
-  async confirmDialogOk() {
-    if (this.dialog.resolve) {
-      this.dialog.resolve(true);
-    }
-    this.dialog.show = false;
-  },
-
-  confirmDialogCancel() {
-    if (this.dialog.resolve) {
-      this.dialog.resolve(false);
-    }
-    this.dialog.show = false;
-  },
-});
-
-PetiteVue.start(store, document.body);
+ready();

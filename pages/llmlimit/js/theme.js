@@ -1,10 +1,10 @@
 /**
  * 主题切换 / Theme management
  */
-let _mode = null;
+var _mode = null;
 
-export function initTheme() {
-  const saved = localStorage.getItem('llmlimit-theme');
+function initTheme() {
+  var saved = localStorage.getItem('llmlimit-theme');
   if (saved) {
     _mode = saved;
   } else {
@@ -14,7 +14,7 @@ export function initTheme() {
   return _mode;
 }
 
-export function toggleTheme() {
+function toggleTheme() {
   _mode = _mode === 'dark' ? 'light' : 'dark';
   localStorage.setItem('llmlimit-theme', _mode);
   _applyTheme();
@@ -24,3 +24,6 @@ export function toggleTheme() {
 function _applyTheme() {
   document.documentElement.setAttribute('data-theme', _mode);
 }
+
+window.initThemeNative = initTheme;
+window.toggleThemeNative = toggleTheme;
