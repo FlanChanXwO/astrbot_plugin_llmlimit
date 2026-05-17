@@ -59,10 +59,17 @@ const dom = {
 // ── Lifecycle ────────────────────────────────────────────────────────
 
 async function ready() {
-  await api.ready();
+  // Theme + event bindings must work even if the API bridge is not yet available
   initTheme();
   bindEvents();
-  await loadAll();
+
+  // Data loading requires the AstrBotPluginPage bridge; handle gracefully
+  try {
+    await api.ready();
+    await loadAll();
+  } catch (err) {
+    console.warn('[llmlimit] API bridge not ready, data loading skipped:', err.message);
+  }
 }
 
 // ── Data loading ─────────────────────────────────────────────────────
