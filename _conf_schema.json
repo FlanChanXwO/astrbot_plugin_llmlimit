@@ -69,27 +69,39 @@
       },
       "group_mode_settings": {
         "description": "群组配额模式",
-        "type": "text",
-        "default": "",
-        "hint": "格式：群ID:shared（共享池）或 群ID:individual（各自独立）。未设置默认共享。每个群占一行，如：\n123456:shared\n789012:individual"
+        "type": "list",
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "hint": "格式：群ID:shared（共享池）或 群ID:individual（各自独立）。未设置默认共享。每个元素占一行，如 123456:shared。"
       },
       "user_limits": {
         "description": "用户特定限制",
-        "type": "text",
-        "default": "",
-        "hint": "格式：用户ID:次数，覆盖默认限额。每个用户占一行，如：\n123456789:100\n987654321:50\n优先级：用户特定 > 群组特定 > 默认。"
+        "type": "list",
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "hint": "格式：用户ID:次数，覆盖默认限额。例如 123456789:100 表示该用户每天可调用 100 次。优先级：用户特定 > 群组特定 > 默认。"
       },
       "group_limits": {
         "description": "群组特定限制",
-        "type": "text",
-        "default": "",
-        "hint": "格式：群ID:次数，覆盖默认限额。每个群占一行，如：\n123456:50\n789012:30\n优先级：用户特定 > 群组特定 > 默认。"
+        "type": "list",
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "hint": "格式：群ID:次数，覆盖默认限额。例如 123456:50 表示该群每天可调用 50 次。优先级：用户特定 > 群组特定 > 默认。"
       },
       "time_period_limits": {
         "description": "时间段限制",
-        "type": "text",
-        "default": "",
-        "hint": "每个时段占一行，格式：HH:MM-HH:MM:次数[:enabled]\nHH=0-23，MM=0-59，支持跨天时段（如 22:00-06:00）。次数为该时段最大调用次数。:enabled 可省略，默认 true。\n如：\n09:00-12:00:5\n14:00-18:00:10:true\n22:00-06:00:3:false"
+        "type": "list",
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "hint": "格式：HH:MM-HH:MM:次数[:enabled]。HH=0-23，MM=0-59，支持跨天时段（如 22:00-06:00）。次数为该时段内最大调用次数。:enabled 可省略，默认 true。"
       },
       "skip_patterns": {
         "description": "跳过消息前缀",
