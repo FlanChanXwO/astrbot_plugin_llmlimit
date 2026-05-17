@@ -1,0 +1,39 @@
+/* ===== 深色主题 / Dark Theme ===== */
+@media (prefers-color-scheme: dark) {
+  body { background: #1a202c; color: #e2e8f0; }
+  .main { background: #2d3748; border-color: #4a5568; }
+  .section-header h2 { color: #e2e8f0; }
+  .section-header h4 { color: #a0aec0; }
+  .item-row { background: #4a5568; border-color: #718096; }
+  .item-row:hover { border-color: #90cdf4; }
+  .item-name { color: #f7fafc; }
+  .item-meta { color: #a0aec0; }
+  .input-wrapper input,
+  .input-wrapper select { background: #4a5568; border-color: #718096; color: #f7fafc; }
+  .input-wrapper input:focus,
+  .input-wrapper select:focus { border-color: #63b3ed; box-shadow: 0 0 0 3px rgba(99,179,237,0.15); }
+  .edit-panel { background: #2d3748; }
+  .panel-header { border-color: #4a5568; }
+  .panel-header h3 { color: #f7fafc; }
+  .form-group label { color: #cbd5e0; }
+  .form-actions { border-color: #4a5568; }
+  .btn-secondary { background: #4a5568; color: #e2e8f0; }
+  .btn-secondary:hover { background: #718096; }
+  .btn-text { color: #a0aec0; }
+  .btn-text:hover { color: #e2e8f0; }
+  .btn-icon { background: #4a5568; color: #a0aec0; }
+  .tag { background: #4a5568; color: #e2e8f0; }
+  .badge-primary { background: #2c5282; color: #bee3f8; }
+  .badge-success { background: #276749; color: #c6f6d5; }
+  .badge-warning { background: #9c4221; background: #78350f; color: #feebc8; }
+  .empty-state p { color: #718096; }
+  .tabs { border-bottom-color: #4a5568; }
+  .tab-btn { color: #a0aec0; }
+  .tab-btn:hover { color: #63b3ed; }
+  .tab-btn.active { color: #63b3ed; border-bottom-color: #63b3ed; }
+  .toggle-switch input + .toggle-slider { background: #718096; }
+  .toggle-label { color: #a0aec0; }
+  .hint { color: #718096; }
+  .confirm-dialog { background: #2d3748; }
+  .confirm-dialog p { color: #a0aec0; }
+}

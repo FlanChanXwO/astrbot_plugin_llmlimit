@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
@@ -46,6 +47,30 @@ class LLMLimitPlugin(Star):
             len(self.config_mgr.time_period_limits),
             self.config_mgr.enabled_limit_types,
         )
+
+        # ── Web API ────────────────────────────────────────────
+        self._init_web_apis()
+
+    def _init_web_apis(self):
+        ctx = self.context
+        ctx.register_web_api("/llmlimit/user-limits", self._api_get_user_limits, ["GET"])
+        ctx.register_web_api("/llmlimit/user-limits/create", self._api_create_user_limit, ["POST"])
+        ctx.register_web_api("/llmlimit/user-limits/update", self._api_update_user_limit, ["POST"])
+        ctx.register_web_api("/llmlimit/user-limits/delete", self._api_delete_user_limit, ["POST"])
+
+        # ── Group limits API ──
+        ctx.register_web_api("/llmlimit/group-limits", self._api_get_group_limits, ["GET"])
+        ctx.register_web_api("/llmlimit/group-limits/create", self._api_create_group_limit, ["POST"])
+        ctx.register_web_api("/llmlimit/group-limits/update", self._api_update_group_limit, ["POST"])
+        ctx.register_web_api("/llmlimit/group-limits/delete", self._api_delete_group_limit, ["POST"])
+
+        # ── Time period limits API ──
+        ctx.register_web_api("/llmlimit/time-period-limits", self._api_get_time_period_limits, ["GET"])
+        ctx.register_web_api("/llmlimit/time-period-limits/create", self._api_create_time_period, ["POST"])
+        ctx.register_web_api("/llmlimit/time-period-limits/update", self._api_update_time_period, ["POST"])
+        ctx.register_web_api("/llmlimit/time-period-limits/delete", self._api_delete_time_period, ["POST"])
+
+        logger.info("LLMLimit Web APIs registered at /llmlimit/*")
 
     # ── LLM 请求拦截 ────────────────────────────────────────────
 
@@ -239,6 +264,168 @@ class LLMLimitPlugin(Star):
         self.config.save_config()
 
     # ── 内部辅助 ─────────────────────────────────────────────────
+
+    def _reload_config_mgr(self):
+        """重新加载 ConfigManager 以同步配置。"""
+        self.config_mgr = ConfigManager(self.config)
+        self.config_mgr.load()
+        self.tracker = UsageTracker(self)
+        self.time_period_mgr = TimePeriodManager(self.config_mgr.time_period_limits)
+        self.limiter = Limiter(self.config_mgr, self.tracker, self.time_period_mgr)
+
+    # ── Web API handlers ───────────────────────────────────────────
+
+    # -- User limits --
+
+    async def _api_get_user_limits(self, _) -> list:
+        items = []
+        for uid, lim in self.config_mgr.user_limits.items():
+            items.append({"userId": str(uid), "limit": lim})
+        return items
+
+    async def _api_create_user_limit(self, body: dict) -> dict:
+        uid = body.get("userId", "").strip()
+        lim = body.get("limit", 0)
+        if not uid or lim <= 0:
+            return {"success": False, "error": "无效参数"}
+        self.config_mgr.user_limits[uid] = lim
+        self._save_user_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    async def _api_update_user_limit(self, body: dict) -> dict:
+        idx = body.get("index", -1)
+        uid = body.get("userId", "").strip()
+        lim = body.get("limit", 0)
+        items = list(self.config_mgr.user_limits.items())
+        if idx < 0 or idx >= len(items):
+            return {"success": False, "error": "索引越界"}
+        old_uid, _ = items[idx]
+        if uid and uid != old_uid:
+            del self.config_mgr.user_limits[old_uid]
+        if uid and lim > 0:
+            self.config_mgr.user_limits[uid] = lim
+        self._save_user_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    async def _api_delete_user_limit(self, body: dict) -> dict:
+        idx = body.get("index", -1)
+        items = list(self.config_mgr.user_limits.items())
+        if idx < 0 or idx >= len(items):
+            return {"success": False, "error": "索引越界"}
+        uid, _ = items[idx]
+        del self.config_mgr.user_limits[uid]
+        self._save_user_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    # -- Group limits --
+
+    async def _api_get_group_limits(self, _) -> list:
+        items = []
+        for gid, lim in self.config_mgr.group_limits.items():
+            items.append({"groupId": str(gid), "limit": lim})
+        return items
+
+    async def _api_create_group_limit(self, body: dict) -> dict:
+        gid = body.get("groupId", "").strip()
+        lim = body.get("limit", 0)
+        if not gid or lim <= 0:
+            return {"success": False, "error": "无效参数"}
+        self.config_mgr.group_limits[gid] = lim
+        self._save_group_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    async def _api_update_group_limit(self, body: dict) -> dict:
+        idx = body.get("index", -1)
+        gid = body.get("groupId", "").strip()
+        lim = body.get("limit", 0)
+        items = list(self.config_mgr.group_limits.items())
+        if idx < 0 or idx >= len(items):
+            return {"success": False, "error": "索引越界"}
+        old_gid, _ = items[idx]
+        if gid and gid != old_gid:
+            del self.config_mgr.group_limits[old_gid]
+        if gid and lim > 0:
+            self.config_mgr.group_limits[gid] = lim
+        self._save_group_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    async def _api_delete_group_limit(self, body: dict) -> dict:
+        idx = body.get("index", -1)
+        items = list(self.config_mgr.group_limits.items())
+        if idx < 0 or idx >= len(items):
+            return {"success": False, "error": "索引越界"}
+        gid, _ = items[idx]
+        del self.config_mgr.group_limits[gid]
+        self._save_group_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    # -- Time period limits --
+
+    async def _api_get_time_period_limits(self, _) -> list:
+        return [
+            {
+                "startTime": p["start_time"],
+                "endTime": p["end_time"],
+                "limit": p["limit"],
+                "enabled": p.get("enabled", True),
+            }
+            for p in self.config_mgr.time_period_limits
+        ]
+
+    async def _api_create_time_period(self, body: dict) -> dict:
+        start = body.get("startTime", "")
+        end = body.get("endTime", "")
+        lim = body.get("limit", 0)
+        enabled = body.get("enabled", True)
+        if not start or not end or lim <= 0:
+            return {"success": False, "error": "无效参数"}
+        self.config_mgr.time_period_limits.append(
+            {"start_time": start, "end_time": end, "limit": lim, "enabled": enabled}
+        )
+        self._save_time_period_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    async def _api_update_time_period(self, body: dict) -> dict:
+        idx = body.get("index", -1)
+        start = body.get("startTime", "")
+        end = body.get("endTime", "")
+        lim = body.get("limit", 0)
+        enabled = body.get("enabled", True)
+        if idx < 0 or idx >= len(self.config_mgr.time_period_limits):
+            return {"success": False, "error": "索引越界"}
+        self.config_mgr.time_period_limits[idx] = {
+            "start_time": start, "end_time": end, "limit": lim, "enabled": enabled
+        }
+        self._save_time_period_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    async def _api_delete_time_period(self, body: dict) -> dict:
+        idx = body.get("index", -1)
+        if idx < 0 or idx >= len(self.config_mgr.time_period_limits):
+            return {"success": False, "error": "索引越界"}
+        self.config_mgr.time_period_limits.pop(idx)
+        self._save_time_period_limits()
+        self._reload_config_mgr()
+        return {"success": True}
+
+    def _save_time_period_limits(self):
+        lines = []
+        for p in self.config_mgr.time_period_limits:
+            enabled = p.get("enabled", True)
+            parts = [p["start_time"], p["end_time"], str(p["limit"])]
+            if not enabled:
+                parts.append("false")
+            lines.append(":".join(parts))
+        self.config["limits"]["time_period_limits"] = "\n".join(lines)
+        self.config.save_config()
 
     def _effective_limit(self, user_id: str, group_id: str | None) -> int:
         """计算用户生效的限制值（用于状态展示）"""

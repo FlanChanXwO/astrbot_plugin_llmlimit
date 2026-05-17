@@ -1,0 +1,165 @@
+/* ===== 基础样式 / Base Styles ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f5f7fa;
+  color: #1b1c1d;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+/* ===== 区块头部 / Section Header ===== */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.section-header h2 { font-size: 20px; color: #1b1c1d; font-weight: 600; }
+.section-header h4 { font-size: 16px; color: #4a5568; font-weight: 600; }
+
+/* ===== 主内容区 ===== */
+.main { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+
+/* ===== Tab 导航 ===== */
+.tabs { display: flex; gap: 4px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
+.tab-btn {
+  padding: 10px 20px; border: none; background: none; cursor: pointer;
+  font-size: 14px; color: #718096; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all 0.2s;
+}
+.tab-btn:hover { color: #3182ce; }
+.tab-btn.active { color: #3182ce; border-bottom-color: #3182ce; font-weight: 600; }
+
+/* ===== 列表 ===== */
+.item-list { display: flex; flex-direction: column; gap: 12px; }
+.item-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; background: #f7fafc; border-radius: 10px;
+  border: 1px solid #e2e8f0; transition: border-color 0.2s;
+}
+.item-row:hover { border-color: #cbd5e0; }
+.item-info { flex: 1; }
+.item-name { font-weight: 600; font-size: 15px; color: #2d3748; }
+.item-meta { font-size: 13px; color: #718096; margin-top: 2px; }
+.item-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 9999px;
+  font-size: 12px; font-weight: 500; margin-left: 8px;
+}
+.badge-primary { background: #ebf8ff; color: #2b6cb0; }
+.badge-success { background: #f0fff4; color: #276749; }
+.badge-warning { background: #fffaf0; color: #9c4221; }
+
+/* ===== 按钮 / Buttons ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.btn-primary { background: #3182ce; color: white; }
+.btn-primary:hover { background: #2c5282; }
+.btn-secondary { background: #e2e8f0; color: #4a5568; }
+.btn-secondary:hover { background: #cbd5e0; }
+.btn-danger { background: #e53e3e; color: white; }
+.btn-danger:hover { background: #c53030; }
+.btn-text { background: none; color: #718096; }
+.btn-text:hover { color: #4a5568; }
+.btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 8px; background: #edf2f7; color: #718096; font-size: 18px; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+.btn-danger-outline { background: white; color: #e53e3e; border: 1px solid #feb2b2; }
+.btn-danger-outline:hover { background: #fff5f5; }
+
+/* ===== 表单 / Form ===== */
+.form { display: flex; flex-direction: column; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 14px; font-weight: 500; color: #4a5568; }
+.form-group label .required { color: #e53e3e; margin-left: 2px; }
+.input-wrapper { position: relative; }
+.input-wrapper input, .input-wrapper select {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; color: #2d3748; background: white;
+  transition: border-color 0.2s;
+}
+.input-wrapper input:focus, .input-wrapper select:focus {
+  outline: none; border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49,130,206,0.1);
+}
+.hint { font-size: 12px; color: #a0aec0; }
+
+.form-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding-top: 12px; border-top: 1px solid #e2e8f0; margin-top: 8px;
+}
+
+.form-row { display: flex; gap: 16px; }
+.form-row .form-group { flex: 1; }
+
+/* ===== 面板 / Panel ===== */
+.panel-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  z-index: 998;
+}
+.panel-overlay.visible { opacity: 1; pointer-events: auto; }
+
+.edit-panel {
+  position: fixed; top: 0; right: -520px; width: 480px; height: 100vh;
+  background: white; box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+  z-index: 999; transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.edit-panel.panel-visible { right: 0; }
+
+.panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; background: white; z-index: 1;
+}
+.panel-header h3 { font-size: 17px; font-weight: 600; }
+.panel-actions { display: flex; gap: 6px; }
+.panel-body { padding: 24px; flex: 1; }
+
+/* ===== 确认对话框 ===== */
+.confirm-dialog-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog {
+  background: white; border-radius: 14px; padding: 28px;
+  width: 380px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+.confirm-dialog h4 { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+.confirm-dialog p { font-size: 14px; color: #718096; margin-bottom: 24px; }
+.confirm-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ===== 空状态 ===== */
+.empty-state { text-align: center; padding: 48px 24px; }
+.empty-state p { color: #a0aec0; font-size: 14px; margin-top: 12px; }
+
+/* ===== 开关 Toggle ===== */
+.toggle-switch { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  width: 40px; height: 22px; background: #cbd5e0; border-radius: 9999px;
+  position: relative; transition: background 0.2s; margin-right: 8px;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; width: 18px; height: 18px;
+  left: 2px; top: 2px; background: white; border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: #3182ce; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+.toggle-label { font-size: 13px; color: #718096; }
+
+/* ===== Toast 通知 ===== */
+.toast {
+  position: fixed; top: 24px; right: 24px; z-index: 1001;
+  padding: 12px 20px; border-radius: 10px;
+  font-size: 14px; font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  transform: translateY(-10px); opacity: 0;
+  transition: all 0.3s;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: #276749; color: white; }
+.toast.error { background: #c53030; color: white; }

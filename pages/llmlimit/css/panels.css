@@ -1,0 +1,6 @@
+/* ===== 面板样式 / Panel Styles ===== */
+@media (max-width: 640px) {
+  .edit-panel { width: 100%; right: -100%; }
+  .container { padding: 12px; }
+  .form-row-3 { grid-template-columns: 1fr; }
+}

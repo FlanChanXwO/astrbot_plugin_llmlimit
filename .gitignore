@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!pages/llmlimit/lib/
 lib64/
 parts/
 sdist/

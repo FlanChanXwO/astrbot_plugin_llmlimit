@@ -11,6 +11,7 @@
 - **豁免用户（Exempt Users）**：指定用户完全不受任何限流规则约束
 - **优先用户（Priority Users）**：不受群组共享限制影响，仍受个人限额约束
 - **跳过模式（Skip Patterns）**：配置前缀（如 `#`、`*`）后，匹配消息不参与限流统计
+- **Web UI 管理面板**：`/api/plugin/page/content/astrbot_plugin_llmlimit/llmlimit/` 提供可视化管理页面，支持用户限制、群组限制、时间段限制的增删改查
 - **管理命令**：`/limit_admin set_user/set_group/set_mode/remove_user/remove_group/list` — 管理员可实时调整限制规则
 - **用户状态查询**：`/limit_status` — 展示当前各维度用量进度条（含百分比和可视化进度条）
 - **冷却机制**：超额提醒消息 300 秒防刷，避免短时间内重复发送限流通知

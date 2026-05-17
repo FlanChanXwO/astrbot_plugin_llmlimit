@@ -1,0 +1,5 @@
+/* ===== 表单样式 ===== */
+.form input[type="number"] { -moz-appearance: textfield; }
+.form input[type="number"]::-webkit-inner-spin-button,
+.form input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }

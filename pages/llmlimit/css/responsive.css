@@ -1,0 +1,8 @@
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .container { padding: 16px; }
+  .main { padding: 20px; }
+  .section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .tabs { overflow-x: auto; }
+  .tab-btn { padding: 8px 14px; font-size: 13px; }
+}
