@@ -27,6 +27,11 @@
   - `theme.js`：去除 `export` 关键字，改为 `window.initThemeNative` / `window.toggleThemeNative` 全局暴露
   - 所有脚本以 `<script>` 非 module 方式加载，零外部框架依赖
 
+### Fixed
+
+- **按钮无法交互**：`api.js` 在模块加载时一次性捕获 `window.AstrBotPluginPage`，当 bridge SDK 脚本（由服务器在 `</body>` 前注入）尚未执行时 `bridge` 始终为 `null`，导致 `api.ready()` 在 `await` 前同步抛出异常，`ready()` 流程提前中断，`bindEvents()` 从未被调用。修复：`getBridge()` 动态读取 `window.AstrBotPluginPage`（每次调用都检查），`api.ready()` 在 bridge 不存在时静默返回，`ready()` 将 `initTheme()` + `bindEvents()` 移出 `try` 块确保始终执行
+- **`confirm-dialog-overlay` 初始可见**：缺少 `opacity: 0; pointer-events: none` 默认样式，导致确认弹窗在未调用 `confirmDialog()` 时就覆盖全屏，拦截所有按钮点击
+
 ---
 
 ## [1.0.0] - 2026-05-17
