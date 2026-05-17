@@ -21,6 +21,11 @@
 
 - **页面目录结构**：从平铺的 `pages/` 改为 `pages/llmlimit/` 子目录，符合 AstrBot `_discover_plugin_pages()` 自动发现机制
 - **`main.py`**：移除无效的 `register_web_page()` 调用（AstrBot v4.x 无此 API，页面由自动发现机制提供）
+- **Web UI 从 PetiteVue 迁移至原生 JS**：移除 `petite-vue.iife.js` 依赖
+  - `app.js`：使用原生 DOM API（`querySelector`、事件委托、`innerHTML` 模板拼接）实现状态管理和渲染
+  - `api.js`：去除 `export` 关键字，改为 `window.ApiModule` 全局暴露
+  - `theme.js`：去除 `export` 关键字，改为 `window.initThemeNative` / `window.toggleThemeNative` 全局暴露
+  - 所有脚本以 `<script>` 非 module 方式加载，零外部框架依赖
 
 ---
 
