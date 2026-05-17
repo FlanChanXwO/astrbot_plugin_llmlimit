@@ -40,7 +40,7 @@ class LLMLimitPlugin(Star):
         self._cooldown_seconds = 300
 
         logger.info(
-            "LLMLimit 已加载 | 默认日限: {} | 豁免用户: {} | 时段限制: {} | 启用维度: {}",
+            "LLMLimit 已加载 | 默认日限: %s | 豁免用户: %s | 时段限制: %s | 启用维度: %s",
             self.config_mgr.default_daily_limit,
             len(self.config_mgr.exempt_users),
             len(self.config_mgr.time_period_limits),
