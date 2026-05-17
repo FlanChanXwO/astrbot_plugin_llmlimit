@@ -1,8 +1,8 @@
 {
   "limits": {
     "description": "基础限制设置",
-    "type": "group",
-    "children": {
+    "type": "object",
+    "items": {
       "default_daily_limit": {
         "description": "默认每日调用限制（每个用户/群组每天的默认调用次数）",
         "type": "int",
@@ -77,8 +77,8 @@
   },
   "messages": {
     "description": "消息设置",
-    "type": "group",
-    "children": {
+    "type": "object",
+    "items": {
       "show_remaining_count": {
         "description": "是否在达到限制时显示剩余次数",
         "type": "bool",
