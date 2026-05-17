@@ -7,7 +7,8 @@ console.log('[llmlimit] theme.js loaded');
 var _mode = null;
 
 function initTheme() {
-  var saved = localStorage.getItem('llmlimit-theme');
+  var saved = null;
+  try { saved = localStorage.getItem('llmlimit-theme'); } catch (e) { /* sandboxed iframe */ }
   if (saved) {
     _mode = saved;
   } else {
@@ -19,7 +20,7 @@ function initTheme() {
 
 function toggleTheme() {
   _mode = _mode === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('llmlimit-theme', _mode);
+  try { localStorage.setItem('llmlimit-theme', _mode); } catch (e) { /* sandboxed iframe */ }
   _applyTheme();
   return _mode;
 }

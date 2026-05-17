@@ -9,6 +9,10 @@ AstrBot plugin for multi-dimensional LLM call rate limiting.
 - **Architecture**: DDD-layered `core/` module
 - **Zero external dependencies**: storage via AstrBot KV Store only (no Redis)
 
+## Communication language
+
+**必须使用中文与用户交流。** When interacting with the user, always respond in Chinese.
+
 ## Directory structure
 
 ```

@@ -62,7 +62,8 @@ const dom = {
 
 async function ready() {
   // Theme + event bindings must work even if the API bridge is not yet available
-  initTheme();
+  // Theme init must not block event bindings (sandboxed iframe: no localStorage)
+  try { initTheme(); } catch (e) { console.warn('[llmlimit] initTheme failed:', e); }
   bindEvents();
   document.body.classList.add('js-loaded');
 
