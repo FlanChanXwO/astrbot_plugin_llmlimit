@@ -201,8 +201,8 @@ function renderHistoryList() {
     var time = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     var date = d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
     var resultBadge = e.allowed
-      ? '<span class="item-badge badge-success">✅ 放行</span>'
-      : '<span class="item-badge badge-warning">🚫 拦截</span>';
+      ? '<span class="item-badge badge-success">放行</span>'
+      : '<span class="item-badge badge-warning">拦截</span>';
     var typeLabel = e.limit_type || 'daily';
     var usageInfo = e.limit > 0 ? (e.usage + '/' + e.limit) : '-';
     return '<tr>' +
@@ -483,7 +483,7 @@ function toggleTheme() {
 
 function updateThemeLabel() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  dom.themeToggle.textContent = dark ? '☀️ 浅色' : '🌙 深色';
+  dom.themeToggle.textContent = dark ? '浅色' : '深色';
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────

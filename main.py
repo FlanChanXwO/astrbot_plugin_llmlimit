@@ -483,7 +483,7 @@ class LLMLimitPlugin(Star):
     ):
         label = MessageBuilder.type_label(limit_type)
         event.set_result(
-            MessageEventResult().message(f"⚠️ {label}剩余 LLM 调用次数: {remaining}")
+            MessageEventResult().message(f"[{label}] 剩余 LLM 调用次数: {remaining}")
         )
 
     async def terminate(self):

@@ -52,7 +52,7 @@ class MessageBuilder:
                 f"• {self.type_label(pt)}: {usage}/{limit} {bar} ({pct:.0f}%)"
             )
         if group_mode == "shared" and "daily" in usages:
-            lines.append("⚠️ 当前群组使用共享配额，所有成员共用限额。")
+            lines.append("[!] 当前群组使用共享配额，所有成员共用限额。")
         return "\n".join(lines)
 
     # ── helpers ──────────────────────────────────────────────
