@@ -36,8 +36,8 @@ class TestParseUserLimits:
             "limits": {
                 "default_daily_limit": 20,
                 "user_limits": "user_a:5\nuser_b:10",
-                "exempt_users": "",
-                "priority_users": "",
+                "exempt_users": [],
+                "priority_users": [],
                 "group_limits": "",
                 "group_mode_settings": "",
                 "time_period_limits": "",
@@ -57,8 +57,8 @@ class TestParseUserLimits:
             "limits": {
                 "default_daily_limit": 20,
                 "user_limits": ["user_a:5", "user_b:10"],
-                "exempt_users": "",
-                "priority_users": "",
+                "exempt_users": [],
+                "priority_users": [],
                 "group_limits": "",
                 "group_mode_settings": "",
                 "time_period_limits": "",
@@ -110,8 +110,8 @@ class TestParseTimePeriodLimits:
             "limits": {
                 "default_daily_limit": 20,
                 "time_period_limits": time_period_str,
-                "exempt_users": "",
-                "priority_users": "",
+                "exempt_users": [],
+                "priority_users": [],
                 "user_limits": "",
                 "group_limits": "",
                 "group_mode_settings": "",
@@ -172,8 +172,8 @@ class TestGroupMode:
             "limits": {
                 "default_daily_limit": 20,
                 "group_mode_settings": "group_1:individual\ngroup_2:shared",
-                "exempt_users": "",
-                "priority_users": "",
+                "exempt_users": [],
+                "priority_users": [],
                 "user_limits": "",
                 "group_limits": "",
                 "time_period_limits": "",
