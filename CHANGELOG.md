@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.1.0] - 2026-05-17
+
+### Added
+
+- **Web UI 管理面板**：`pages/llmlimit/` 提供可视化配置页面，访问路径 `/api/plugin/page/content/astrbot_plugin_llmlimit/llmlimit/`
+  - 三个 Tab 页签：用户限制 / 群组限制 / 时间段限制
+  - 增删改查弹窗表单，含确认对话框防误删
+  - Toast 通知 + 空状态提示
+  - 浅色/深色主题切换，偏好记忆到 `localStorage`
+  - 响应式布局适配移动端
+- **Logger 包装器**：`core/utils/logger.py` 提供 `LLMLimitLogger`，统一以 `[llmlimit]` 前缀输出日志，基于 rsshub `PrefixedLogger` 模式，支持 `debug/info/warning/error/fatal`
+- **REST API 端点**（供 Web UI 调用）：
+  - `GET /llmlimit/user-limits` / `POST /llmlimit/user-limits/create` / `update` / `delete`
+  - `GET /llmlimit/group-limits` / `POST /llmlimit/group-limits/create` / `update` / `delete`
+  - `GET /llmlimit/time-period-limits` / `POST /llmlimit/time-period-limits/create` / `update` / `delete`
+- **`.gitignore` 修复**：例外规则 `!pages/llmlimit/lib/` 确保 `petite-vue.iife.js` 前端库正常纳入版本管理
+
+### Changed
+
+- **页面目录结构**：从平铺的 `pages/` 改为 `pages/llmlimit/` 子目录，符合 AstrBot `_discover_plugin_pages()` 自动发现机制
+- **`main.py`**：移除无效的 `register_web_page()` 调用（AstrBot v4.x 无此 API，页面由自动发现机制提供）
+
+---
+
 ## [1.0.0] - 2026-05-17
 
 ### Added
@@ -11,7 +35,6 @@
 - **豁免用户（Exempt Users）**：指定用户完全不受任何限流规则约束
 - **优先用户（Priority Users）**：不受群组共享限制影响，仍受个人限额约束
 - **跳过模式（Skip Patterns）**：配置前缀（如 `#`、`*`）后，匹配消息不参与限流统计
-- **Web UI 管理面板**：`/api/plugin/page/content/astrbot_plugin_llmlimit/llmlimit/` 提供可视化管理页面，支持用户限制、群组限制、时间段限制的增删改查
 - **管理命令**：`/limit_admin set_user/set_group/set_mode/remove_user/remove_group/list` — 管理员可实时调整限制规则
 - **用户状态查询**：`/limit_status` — 展示当前各维度用量进度条（含百分比和可视化进度条）
 - **冷却机制**：超额提醒消息 300 秒防刷，避免短时间内重复发送限流通知

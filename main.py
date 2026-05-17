@@ -18,7 +18,7 @@ from .core import (
 
 
 @register(
-    "astrbot_plugin_llmlimit", "FlanChanXwO", "精准控制 LLM 调用频率与使用额度", "1.0.0"
+    "astrbot_plugin_llmlimit", "FlanChanXwO", "精准控制 LLM 调用频率与使用额度", "1.1.0"
 )
 class LLMLimitPlugin(Star):
     """LLM 调用限流插件"""
