@@ -13,6 +13,17 @@ AstrBot plugin for multi-dimensional LLM call rate limiting.
 
 **必须使用中文与用户交流。** When interacting with the user, always respond in Chinese.
 
+## Skills
+
+**Prefer using the `astrbot-dev-skill` when writing or modifying this plugin.** It provides AstrBot-specific API references, decorators, hook signatures, config schema rules, and platform adapter patterns — reducing guesswork and preventing signature mismatches.
+
+If the skill is not available in the current session, ask the user whether they want to install it:
+
+> 当前未加载 astrbot-dev-skill，建议安装以提升 AstrBot 插件开发效率。是否安装？
+> - 项目本地安装：`npx skills add xunxiing/AstrBot-Skill`
+> - 全局安装（所有项目可用）：`npx skills add -g xunxiing/AstrBot-Skill`
+> - 或手动下载：https://github.com/xunxiing/AstrBot-Skill/tree/v4
+
 ## Directory structure
 
 ```
@@ -36,7 +47,7 @@ pages/
       theme.js             # Light/dark toggle with localStorage persistence
     css/                   # 7 CSS files: base, components, forms, panels,
                            #   notifications, responsive, dark-theme
-tests/                     # 57 pytest + pytest-asyncio unit tests
+tests/                     # 72 pytest + pytest-asyncio unit tests
 ```
 
 ## Key conventions
@@ -71,9 +82,9 @@ Period keys are date-based (daily: `YYYY-MM-DD`, weekly: `YYYY-Www`, monthly: `Y
 
 ### Testing
 
-- `pytest + pytest-asyncio`, 57 tests
+- `pytest + pytest-asyncio`, 72 tests
 - Mock patterns: `MagicMock` / `AsyncMock`, config built with `_build_config()`
-- Test files: `test_config_manager.py`, `test_limiter.py`, `test_message_builder.py`, `test_time_period_manager.py`, `test_usage_tracker.py`
+- Test files: `test_call_history.py`, `test_config_manager.py`, `test_limiter.py`, `test_message_builder.py`, `test_time_period_manager.py`, `test_usage_tracker.py`
 
 ## Code rules
 
