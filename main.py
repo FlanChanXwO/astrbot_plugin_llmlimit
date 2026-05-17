@@ -1,6 +1,6 @@
 import time
 
-from astrbot.api import logger
+from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
 from astrbot.api.platform import MessageType
 from astrbot.api.provider import ProviderRequest
@@ -22,8 +22,9 @@ from .core import (
 class LLMLimitPlugin(Star):
     """LLM 调用限流插件"""
 
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
+        self.config = config
 
     async def initialize(self):
         """插件初始化"""
