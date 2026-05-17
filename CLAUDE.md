@@ -96,28 +96,28 @@ Period keys are date-based (daily: `YYYY-MM-DD`, weekly: `YYYY-Www`, monthly: `Y
 
 ## MCP tools
 
-If the user has configured the following MCP servers, you **must** use them:
+If you have MCP tools available, use them as follows. Tool names may vary between MCP servers — identify them by their capabilities rather than exact names.
 
-### jetbrains-ide-mcp (PyCharm MCP)
+### IDE / code intelligence tools
 
-- `get_file_text_by_path` / `read_file`: read project files
-- `find_files_by_name_keyword` / `search_file`: locate files by name or glob
-- `search_in_files_by_text` / `search_in_files_by_regex`: search code content
-- `get_symbol_info`: inspect symbol declarations
-- `get_file_problems`: run IntelliJ inspections on a file
-- `build_project`: trigger project build and get compilation errors
-- **Use this MCP whenever editing or inspecting Python files** — it provides IDE-level code intelligence superior to raw grep/glob.
+Tools that provide IDE-level operations for project files belong to this category. Look for tool names like:
+- `get_file_text_by_path` / `read_file` — reading files
+- `find_files_by_name_keyword` / `search_file` / `find_files_by_glob` — locating files
+- `search_in_files_by_text` / `search_in_files_by_regex` — searching code
+- `get_symbol_info` — inspecting symbols
+- `get_file_problems` — running inspections (lint/type errors)
+- `build_project` — triggering builds
 
-### playwright-mcp (Playwright MCP)
+**When available, prefer these over raw Bash `grep` / `find` / `cat` for exploring and editing Python files.** They provide richer context and catch issues early.
 
-- `browser_navigate` / `browser_snapshot` / `browser_click`: test Web UI pages interactively
-- `browser_take_screenshot`: capture visual state
-- `browser_console_messages`: inspect browser console for JS errors
-- **Use this MCP to test `pages/llmlimit/` frontend changes** — open the AstrBot dashboard at `http://localhost:6185`, navigate to the plugin page at `/api/plugin/page/content/astrbot_plugin_llmlimit/llmlimit/`, and verify UI behavior.
+### Browser / UI testing tools (Playwright-like)
 
-### agent-lsp (LSP agent)
+Tools that control a real browser for UI testing. Look for: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_take_screenshot`, `browser_console_messages`.
 
-- Provides language server protocol diagnostics (completions, hover, go-to-definition)
-- **Use this MCP for code navigation and understanding** — cross-references, type info, and jump-to-definition.
+**Only use these for UI-related tasks** — testing `pages/llmlimit/` rendering, verifying button interactions, debugging layout/CSS issues. Navigate to `http://localhost:6185` to access the AstrBot dashboard, then go to the plugin page at `/api/plugin/page/content/astrbot_plugin_llmlimit/llmlimit/`.
 
-When these MCP tools are available, prefer them over raw Bash grep/find/cat commands for code exploration and UI testing.
+**Do NOT use browser tools for code search, file reading, or non-UI debugging.**
+
+### LSP / code navigation tools
+
+Tools that provide language server protocol features: completions, hover info, go-to-definition, cross-references. Use for understanding code structure and symbol relationships.
