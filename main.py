@@ -53,22 +53,22 @@ class LLMLimitPlugin(Star):
 
     def _init_web_apis(self):
         ctx = self.context
-        ctx.register_web_api("/llmlimit/user-limits", self._api_get_user_limits, ["GET"])
-        ctx.register_web_api("/llmlimit/user-limits/create", self._api_create_user_limit, ["POST"])
-        ctx.register_web_api("/llmlimit/user-limits/update", self._api_update_user_limit, ["POST"])
-        ctx.register_web_api("/llmlimit/user-limits/delete", self._api_delete_user_limit, ["POST"])
+        ctx.register_web_api("/llmlimit/user-limits", self._api_get_user_limits, ["GET"], "获取用户限制列表")
+        ctx.register_web_api("/llmlimit/user-limits/create", self._api_create_user_limit, ["POST"], "创建用户限制")
+        ctx.register_web_api("/llmlimit/user-limits/update", self._api_update_user_limit, ["POST"], "更新用户限制")
+        ctx.register_web_api("/llmlimit/user-limits/delete", self._api_delete_user_limit, ["POST"], "删除用户限制")
 
         # ── Group limits API ──
-        ctx.register_web_api("/llmlimit/group-limits", self._api_get_group_limits, ["GET"])
-        ctx.register_web_api("/llmlimit/group-limits/create", self._api_create_group_limit, ["POST"])
-        ctx.register_web_api("/llmlimit/group-limits/update", self._api_update_group_limit, ["POST"])
-        ctx.register_web_api("/llmlimit/group-limits/delete", self._api_delete_group_limit, ["POST"])
+        ctx.register_web_api("/llmlimit/group-limits", self._api_get_group_limits, ["GET"], "获取群组限制列表")
+        ctx.register_web_api("/llmlimit/group-limits/create", self._api_create_group_limit, ["POST"], "创建群组限制")
+        ctx.register_web_api("/llmlimit/group-limits/update", self._api_update_group_limit, ["POST"], "更新群组限制")
+        ctx.register_web_api("/llmlimit/group-limits/delete", self._api_delete_group_limit, ["POST"], "删除群组限制")
 
         # ── Time period limits API ──
-        ctx.register_web_api("/llmlimit/time-period-limits", self._api_get_time_period_limits, ["GET"])
-        ctx.register_web_api("/llmlimit/time-period-limits/create", self._api_create_time_period, ["POST"])
-        ctx.register_web_api("/llmlimit/time-period-limits/update", self._api_update_time_period, ["POST"])
-        ctx.register_web_api("/llmlimit/time-period-limits/delete", self._api_delete_time_period, ["POST"])
+        ctx.register_web_api("/llmlimit/time-period-limits", self._api_get_time_period_limits, ["GET"], "获取时间段限制列表")
+        ctx.register_web_api("/llmlimit/time-period-limits/create", self._api_create_time_period, ["POST"], "创建时间段限制")
+        ctx.register_web_api("/llmlimit/time-period-limits/update", self._api_update_time_period, ["POST"], "更新时间段限制")
+        ctx.register_web_api("/llmlimit/time-period-limits/delete", self._api_delete_time_period, ["POST"], "删除时间段限制")
 
         logger.info("LLMLimit Web APIs registered at /llmlimit/*")
 
