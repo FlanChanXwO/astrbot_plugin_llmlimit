@@ -165,3 +165,19 @@ body {
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: #276749; color: white; }
 .toast.error { background: #c53030; color: white; }
+
+/* ===== 历史表格 / History Table ===== */
+.history-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.history-table th {
+  text-align: left; padding: 8px 10px; background: #f7fafc;
+  border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #4a5568;
+  white-space: nowrap;
+}
+.history-table td {
+  padding: 7px 10px; border-bottom: 1px solid #edf2f7; color: #2d3748;
+  max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.history-table tbody tr:hover { background: #f7fafc; }
+.history-table .msg-preview { color: #a0aec0; font-size: 12px; max-width: 160px; }

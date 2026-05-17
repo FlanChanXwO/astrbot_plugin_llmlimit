@@ -7,6 +7,7 @@ from astrbot.api.provider import ProviderRequest
 from astrbot.api.star import Context, Star, register
 
 from .core import (
+    CallHistoryTracker,
     ConfigManager,
     Limiter,
     LimiterDecision,
@@ -34,6 +35,7 @@ class LLMLimitPlugin(Star):
         self.time_period_mgr = TimePeriodManager(self.config_mgr.time_period_limits)
         self.limiter = Limiter(self.config_mgr, self.tracker, self.time_period_mgr)
         self.msg_builder = MessageBuilder(self.config)
+        self.history = CallHistoryTracker(self)
 
         # 冷却：防止短时间重复发送"次数已用完"
         self._blocked_cooldown: dict[str, float] = {}
@@ -69,6 +71,9 @@ class LLMLimitPlugin(Star):
         ctx.register_web_api("/llmlimit/time-period-limits/update", self._api_update_time_period, ["POST"], "更新时间段限制")
         ctx.register_web_api("/llmlimit/time-period-limits/delete", self._api_delete_time_period, ["POST"], "删除时间段限制")
 
+        # ── Call history API ──
+        ctx.register_web_api("/llmlimit/call-history", self._api_get_call_history, ["GET"], "获取调用历史")
+
         logger.info("LLMLimit Web APIs registered at /llmlimit/*")
 
     # ── LLM 请求拦截 ────────────────────────────────────────────
@@ -89,6 +94,17 @@ class LLMLimitPlugin(Star):
             group_id = event.get_group_id()
 
         decision = await self.limiter.decide(user_id, group_id)
+
+        # 记录调用历史
+        await self.history.record(
+            user_id=user_id,
+            group_id=group_id,
+            allowed=decision.allowed,
+            limit_type=decision.limit_type,
+            usage=decision.usage,
+            limit=decision.limit,
+            msg_preview=message_str[:50] if message_str else "",
+        )
 
         if not decision.allowed:
             self._send_exceeded_message(event, user_id, decision)
@@ -264,6 +280,10 @@ class LLMLimitPlugin(Star):
 
     # ── 内部辅助 ─────────────────────────────────────────────────
 
+    async def _api_get_call_history(self, _) -> list:
+        """返回最近 200 条调用历史。"""
+        return await self.history.get_recent()
+
     def _reload_config_mgr(self):
         """重新加载 ConfigManager 以同步配置。"""
         self.config_mgr = ConfigManager(self.config)
@@ -271,6 +291,7 @@ class LLMLimitPlugin(Star):
         self.tracker = UsageTracker(self)
         self.time_period_mgr = TimePeriodManager(self.config_mgr.time_period_limits)
         self.limiter = Limiter(self.config_mgr, self.tracker, self.time_period_mgr)
+        self.history = CallHistoryTracker(self)
 
     # ── Web API handlers ───────────────────────────────────────────
 

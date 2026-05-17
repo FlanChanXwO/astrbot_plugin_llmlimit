@@ -148,6 +148,14 @@ var ApiModule = {
       return r;
     } catch (err) { apiError(err); }
   },
+
+  // call history
+  async getCallHistory() {
+    var bridge = getBridge();
+    if (!bridge) return [];
+    try { return handle(await bridge.apiGet('call-history')); }
+    catch (err) { apiError(err); }
+  },
 };
 
 window.ApiModule = ApiModule;

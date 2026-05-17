@@ -9,6 +9,7 @@ const state = {
   userLimits: [],
   groupLimits: [],
   timePeriodLimits: [],
+  callHistory: [],
   editingUserIndex: -1,
   editingGroupIndex: -1,
   editingPeriodIndex: -1,
@@ -27,6 +28,9 @@ const dom = {
   tabUsers: $('#tabUsers'),
   tabGroups: $('#tabGroups'),
   tabPeriods: $('#tabPeriods'),
+  tabHistory: $('#tabHistory'),
+  historyList: $('#historyList'),
+  btnRefreshHistory: $('#btnRefreshHistory'),
   userList: $('#userList'),
   groupList: $('#groupList'),
   periodList: $('#periodList'),
@@ -175,6 +179,47 @@ function renderPeriodList() {
   `).join('');
 }
 
+// ── History ───────────────────────────────────────────────────────────
+
+async function loadHistory() {
+  try {
+    state.callHistory = await api.getCallHistory() || [];
+  } catch (err) {
+    state.callHistory = [];
+  }
+  renderHistoryList();
+}
+
+function renderHistoryList() {
+  var list = state.callHistory;
+  if (list.length === 0) {
+    dom.historyList.innerHTML = '<div class="empty-state"><p>暂无调用记录。</p></div>';
+    return;
+  }
+  var rows = list.map(function (e) {
+    var d = new Date(e.ts * 1000);
+    var time = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    var date = d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+    var resultBadge = e.allowed
+      ? '<span class="item-badge badge-success">✅ 放行</span>'
+      : '<span class="item-badge badge-warning">🚫 拦截</span>';
+    var typeLabel = e.limit_type || 'daily';
+    var usageInfo = e.limit > 0 ? (e.usage + '/' + e.limit) : '-';
+    return '<tr>' +
+      '<td>' + escHtml(date + ' ' + time) + '</td>' +
+      '<td title="' + escHtml(e.user_id) + '">' + escHtml(e.user_id.substring(0, 12)) + '</td>' +
+      '<td>' + escHtml(e.group_id ? e.group_id.substring(0, 12) : '-') + '</td>' +
+      '<td>' + resultBadge + '</td>' +
+      '<td>' + escHtml(typeLabel) + '</td>' +
+      '<td>' + escHtml(usageInfo) + '</td>' +
+      '<td class="msg-preview" title="' + escHtml(e.msg_preview) + '">' + escHtml(e.msg_preview.substring(0, 30)) + '</td>' +
+      '</tr>';
+  });
+  dom.historyList.innerHTML = '<table class="history-table"><thead><tr>' +
+    '<th>时间</th><th>用户</th><th>群</th><th>结果</th><th>类型</th><th>用量</th><th>消息</th>' +
+    '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+}
+
 // ── Tab switching ────────────────────────────────────────────────────
 
 function switchTab(tab) {
@@ -185,6 +230,10 @@ function switchTab(tab) {
   dom.tabUsers.hidden = tab !== 'users';
   dom.tabGroups.hidden = tab !== 'groups';
   dom.tabPeriods.hidden = tab !== 'periods';
+  dom.tabHistory.hidden = tab !== 'history';
+  if (tab === 'history' && state.callHistory.length === 0) {
+    loadHistory();
+  }
 }
 
 // ── Panel ────────────────────────────────────────────────────────────
@@ -503,6 +552,9 @@ function bindEvents() {
   // Confirm dialog
   safely(dom.confirmOk, 'click', () => closeConfirm(true), 'confirmOk');
   safely(dom.confirmCancel, 'click', () => closeConfirm(false), 'confirmCancel');
+
+  // Refresh history
+  safely(dom.btnRefreshHistory, 'click', loadHistory, 'btnRefreshHistory');
 
   // List item delegation (edit / delete)
   safely(dom.userList, 'click', (e) => {

@@ -36,4 +36,8 @@
   .hint { color: #718096; }
   .confirm-dialog { background: #2d3748; }
   .confirm-dialog p { color: #a0aec0; }
+  .history-table th { background: #4a5568; color: #cbd5e0; border-bottom-color: #718096; }
+  .history-table td { color: #e2e8f0; border-bottom-color: #4a5568; }
+  .history-table tbody tr:hover { background: #4a5568; }
+  .history-table .msg-preview { color: #718096; }
 }
