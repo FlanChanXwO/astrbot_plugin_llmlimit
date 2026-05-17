@@ -132,3 +132,15 @@ Tools that control a real browser for UI testing. Look for: `browser_navigate`, 
 ### LSP / code navigation tools
 
 Tools that provide language server protocol features: completions, hover info, go-to-definition, cross-references. Use for understanding code structure and symbol relationships.
+
+## Maintenance
+
+**当代码发生重大变化时必须同步更新本文件。** 包括但不限于：
+
+- 目录结构调整（新增/删除/移动/重命名文件或模块）
+- 核心逻辑变更（限流决策链、KV 存储格式、API 路由规则）
+- 新增/移除外部依赖
+- 测试框架或 mock 模式变化
+- 构建/部署流程变更
+
+更新后记得 commit 本文件，确保后续 AI 会话获取准确的代码上下文。
