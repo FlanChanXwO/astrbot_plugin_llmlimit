@@ -33,54 +33,6 @@
         "type": "int",
         "default": 1
       },
-      "exempt_users": {
-        "description": "豁免用户ID列表（不受任何限制）",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        }
-      },
-      "priority_users": {
-        "description": "优先用户ID列表（不参与群组共享限制）",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        }
-      },
-      "group_mode_settings": {
-        "description": "群组模式设置（格式：群ID:shared 或 群ID:individual）",
-        "type": "text",
-        "default": "",
-        "hint": "一行一个，例如：\n123456:shared\n789012:individual"
-      },
-      "user_limits": {
-        "description": "用户特定限制（格式：用户ID:次数）",
-        "type": "text",
-        "default": "",
-        "hint": "一行一个，例如：\n123456789:100\n987654321:50"
-      },
-      "group_limits": {
-        "description": "群组特定限制（格式：群ID:次数）",
-        "type": "text",
-        "default": "",
-        "hint": "一行一个，例如：\n123456:50\n789012:30"
-      },
-      "time_period_limits": {
-        "description": "时间段限制（格式：HH:MM-HH:MM:次数[:enabled]）",
-        "type": "text",
-        "default": "",
-        "hint": "一行一个，例如：\n09:00-12:00:5:true\n14:00-18:00:10:true"
-      },
-      "skip_patterns": {
-        "description": "忽略处理的消息前缀",
-        "type": "list",
-        "default": ["#", "*"],
-        "items": {
-          "type": "string"
-        }
-      },
       "enabled_limit_types": {
         "description": "启用的限制类型（至少选一项）",
         "type": "list",
