@@ -1,6 +1,9 @@
 /**
  * 主题切换 / Theme management
  */
+
+console.log('[llmlimit] theme.js loaded');
+
 var _mode = null;
 
 function initTheme() {

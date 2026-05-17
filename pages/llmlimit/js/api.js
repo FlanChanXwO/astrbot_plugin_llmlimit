@@ -2,6 +2,8 @@
  * Web API 桥接模块 — LLMLimit 插件
  */
 
+console.log('[llmlimit] api.js loaded');
+
 function getBridge() {
   return window.AstrBotPluginPage || null;
 }

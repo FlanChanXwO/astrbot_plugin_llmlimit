@@ -1,5 +1,7 @@
 const api = window.ApiModule;
 
+console.log('[llmlimit] app.js loaded');
+
 // ── State ────────────────────────────────────────────────────────────
 
 const state = {
@@ -62,6 +64,7 @@ async function ready() {
   // Theme + event bindings must work even if the API bridge is not yet available
   initTheme();
   bindEvents();
+  document.body.classList.add('js-loaded');
 
   // Data loading requires the AstrBotPluginPage bridge; handle gracefully
   try {
@@ -447,66 +450,85 @@ function updatePeriodToggleLabel() {
 
 // ── Event binding ────────────────────────────────────────────────────
 
+var bindOkCount = 0;
+var bindTotalCount = 0;
+
+function safely(el, event, handler, label) {
+  bindTotalCount++;
+  if (!el) {
+    console.error('[llmlimit] bind failed: element is null for "' + label + '"');
+    return;
+  }
+  try {
+    el.addEventListener(event, handler);
+    bindOkCount++;
+  } catch (e) {
+    console.error('[llmlimit] bind failed for "' + label + '":', e);
+  }
+}
+
 function bindEvents() {
   // Tabs
-  dom.tabBar.addEventListener('click', (e) => {
+  safely(dom.tabBar, 'click', (e) => {
     const btn = e.target.closest('[data-tab]');
     if (btn) switchTab(btn.dataset.tab);
-  });
+  }, 'tabBar');
 
   // Theme
-  dom.themeToggle.addEventListener('click', toggleTheme);
+  safely(dom.themeToggle, 'click', toggleTheme, 'themeToggle');
 
   // Panel
-  dom.panelClose.addEventListener('click', closePanel);
-  dom.panelOverlay.addEventListener('click', closePanel);
+  safely(dom.panelClose, 'click', closePanel, 'panelClose');
+  safely(dom.panelOverlay, 'click', closePanel, 'panelOverlay');
 
   // Add buttons
-  dom.btnAddUser.addEventListener('click', () => openUserPanel(-1));
-  dom.btnAddGroup.addEventListener('click', () => openGroupPanel(-1));
-  dom.btnAddPeriod.addEventListener('click', () => openPeriodPanel(-1));
+  safely(dom.btnAddUser, 'click', () => openUserPanel(-1), 'btnAddUser');
+  safely(dom.btnAddGroup, 'click', () => openGroupPanel(-1), 'btnAddGroup');
+  safely(dom.btnAddPeriod, 'click', () => openPeriodPanel(-1), 'btnAddPeriod');
 
   // Form submissions
-  dom.userForm.addEventListener('submit', saveUser);
-  dom.groupForm.addEventListener('submit', saveGroup);
-  dom.periodForm.addEventListener('submit', savePeriod);
+  safely(dom.userForm, 'submit', saveUser, 'userForm');
+  safely(dom.groupForm, 'submit', saveGroup, 'groupForm');
+  safely(dom.periodForm, 'submit', savePeriod, 'periodForm');
 
   // Form cancel buttons
-  $('#userFormCancel').addEventListener('click', closePanel);
-  $('#groupFormCancel').addEventListener('click', closePanel);
-  $('#periodFormCancel').addEventListener('click', closePanel);
+  safely(document.querySelector('#userFormCancel'), 'click', closePanel, 'userFormCancel');
+  safely(document.querySelector('#groupFormCancel'), 'click', closePanel, 'groupFormCancel');
+  safely(document.querySelector('#periodFormCancel'), 'click', closePanel, 'periodFormCancel');
 
   // Period enabled toggle label
-  dom.inputPeriodEnabled.addEventListener('change', updatePeriodToggleLabel);
+  safely(dom.inputPeriodEnabled, 'change', updatePeriodToggleLabel, 'inputPeriodEnabled');
 
   // Confirm dialog
-  dom.confirmOk.addEventListener('click', () => closeConfirm(true));
-  dom.confirmCancel.addEventListener('click', () => closeConfirm(false));
+  safely(dom.confirmOk, 'click', () => closeConfirm(true), 'confirmOk');
+  safely(dom.confirmCancel, 'click', () => closeConfirm(false), 'confirmCancel');
 
   // List item delegation (edit / delete)
-  dom.userList.addEventListener('click', (e) => {
+  safely(dom.userList, 'click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const idx = parseInt(btn.dataset.index, 10);
     if (btn.dataset.action === 'edit-user') openUserPanel(idx);
     else if (btn.dataset.action === 'delete-user') deleteUser(idx);
-  });
+  }, 'userList');
 
-  dom.groupList.addEventListener('click', (e) => {
+  safely(dom.groupList, 'click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const idx = parseInt(btn.dataset.index, 10);
     if (btn.dataset.action === 'edit-group') openGroupPanel(idx);
     else if (btn.dataset.action === 'delete-group') deleteGroup(idx);
-  });
+  }, 'groupList');
 
-  dom.periodList.addEventListener('click', (e) => {
+  safely(dom.periodList, 'click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const idx = parseInt(btn.dataset.index, 10);
     if (btn.dataset.action === 'edit-period') openPeriodPanel(idx);
     else if (btn.dataset.action === 'delete-period') deletePeriod(idx);
-  });
+  }, 'periodList');
+
+  console.log('[llmlimit] bindEvents() done — ' + bindOkCount + '/' + bindTotalCount + ' bindings OK');
 }
 
 // ── Bootstrap ────────────────────────────────────────────────────────
