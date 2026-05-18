@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.3.1] - 2026-05-18
+
+### Fixed
+
+- **`clear_user_usage` 仅清除 individual 配额**：扩展为同时清除已知群组中的 personal key（independent 模式），不触及 shared 群组计数器
+- **`/limit_admin clear` count==0 时无提示**：当无启用维度时输出明确提示，而非仅显示计数
+
+---
+
+## [1.3.0] - 2026-05-18
+
+### Added
+
+- **`/limit_admin clear` 命令**：重置指定用户当前周期的使用额度，需 ADMIN 权限
+- **`UsageTracker.clear_user_usage()`**：遍历所有启用维度清零 KV 用量
+
+### Fixed
+
+- **9 × E402 ruff 错误**：统一将 module docstring 移至 `from __future__ import annotations` 之前，保持 imports 连续
+
+### Changed
+
+- **CLAUDE.md**：新增语义化版本规范（新功能→minor、修复→patch、大重构→major），移除已修复的 E402 误报条目
+
+---
+
 ## [1.2.0] - 2026-05-18
 
 ### Added

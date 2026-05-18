@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """
 用量追踪模块
 
 通过 AstrBot 内置 KV Store 读写使用次数，不依赖 Redis。
 """
+
+from __future__ import annotations
 
 import datetime
 
@@ -58,6 +58,35 @@ class UsageTracker:
             val = await self.plugin.get_kv_data(key, 0)
             result[pt] = int(val) if val else 0
         return result
+
+    async def clear_user_usage(self, user_id: str) -> int:
+        """重置用户在所有启用维度上的当前周期用量。
+
+        清除范围：
+        1. 个人配额 — user:{user_id}
+        2. 已知群组中的个人配额 — group:{gid}:user:{user_id}（仅 independent 模式群组）
+        不触及 shared 群组计数器（那是群级别而非用户级别的配额）。
+        返回重置的 key 数量。
+        """
+        enabled_types = self.plugin.config_mgr.enabled_limit_types
+        count = 0
+        for pt in enabled_types:
+            key = self._build_key(user_id, None, pt, "individual")
+            await self.plugin.put_kv_data(key, 0)
+            count += 1
+
+        # 遍历已知群组，清除该用户在 individual 模式群组中的个人 key
+        known_groups = set()
+        known_groups.update(self.plugin.config_mgr.group_modes.keys())
+        known_groups.update(self.plugin.config_mgr.group_limits.keys())
+        for gid in known_groups:
+            mode = self.plugin.config_mgr.get_group_mode(gid)
+            if mode == "individual":
+                for pt in enabled_types:
+                    key = self._build_key(user_id, gid, pt, "individual")
+                    await self.plugin.put_kv_data(key, 0)
+                    count += 1
+        return count
 
     # ── key generation ──────────────────────────────────────────
 

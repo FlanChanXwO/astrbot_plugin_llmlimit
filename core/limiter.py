@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """
 核心限制逻辑模块
 
 负责编排多维度速率限制决策：决定一个 LLM 请求是否应该被允许。
 """
+
+from __future__ import annotations
 
 from .config_manager import ConfigManager
 from .time_period_manager import TimePeriodManager

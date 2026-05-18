@@ -113,6 +113,7 @@
 | `/limit_admin set_mode <群ID> <shared\|individual>` | 设置群组配额模式 |
 | `/limit_admin remove_user <用户ID>` | 移除用户特定限制 |
 | `/limit_admin remove_group <群ID>` | 移除群组特定限制 |
+| `/limit_admin clear <用户ID>` | 重置用户当前周期额度 |
 
 #### 使用示例
 

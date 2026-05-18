@@ -116,12 +116,7 @@ Period keys are date-based (daily: `YYYY-MM-DD`, weekly: `YYYY-Www`, monthly: `Y
 - **Must run** `ruff check .` **after every Python file modification** to ensure 0 errors
 - **Run** `ruff check . --fix` **before committing** to auto-fix fixable issues
 - Target version: Python 3.12, default rule set
-- Confirmed false-positive suppressions (9 × E402, `ruff --fix` has auto-fixed UP037 and F401):
-  - `core/config_manager.py:9: E402` ← `from __future__ import annotations` placed before module docstring, compliant with Python spec
-  - `core/data_store.py:10-12: E402` ← same as above
-  - `core/limiter.py:9-11: E402` ← same as above
-  - `core/time_period_manager.py:9: E402` ← same as above
-  - `core/usage_tracker.py:9: E402` ← same as above
+- Module docstring goes before `from __future__ import annotations` to keep imports contiguous and avoid E402
 
 ## MCP tools
 

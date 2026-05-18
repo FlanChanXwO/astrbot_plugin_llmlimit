@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """
 时间段管理模块
 
 负责时间段限制的解析、匹配和管理。
 """
+
+from __future__ import annotations
 
 import datetime
 

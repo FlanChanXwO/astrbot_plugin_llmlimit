@@ -22,7 +22,7 @@ from .core.data_store import PluginDataStore
 
 
 @register(
-    "astrbot_plugin_llmlimit", "FlanChanXwO", "精准控制 LLM 调用频率与使用额度", "1.2.0"
+    "astrbot_plugin_llmlimit", "FlanChanXwO", "精准控制 LLM 调用频率与使用额度", "1.3.1"
 )
 class LLMLimitPlugin(Star):
     """LLM 调用限流插件"""
@@ -363,6 +363,19 @@ class LLMLimitPlugin(Star):
             yield event.plain_result(f"已移除群组 {target_id} 的特定限制。")
         else:
             yield event.plain_result(f"群组 {target_id} 没有设置特定限制。")
+
+    @cmd_limit_admin.command("clear")
+    async def admin_clear(self, event: AstrMessageEvent, target_id: str):
+        """重置用户额度: /limit_admin clear <user_id>"""
+        if not self._check_admin(event):
+            return
+        count = await self.tracker.clear_user_usage(target_id)
+        if count == 0:
+            yield event.plain_result(
+                f"未找到用户 {target_id} 的可用维度（当前无启用的限制类型或已知群组）。"
+            )
+        else:
+            yield event.plain_result(f"已重置用户 {target_id} 的 {count} 个维度额度。")
 
     @cmd_limit_admin.command("list")
     async def admin_list(self, event: AstrMessageEvent):

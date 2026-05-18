@@ -1,11 +1,11 @@
-from __future__ import annotations
-
 """
 独立持久化存储模块
 
 提供独立于 AstrBotConfig 的 JSON 文件持久化，
 防止 AstrBot 配置完整性检查清除 Web UI 管理的数据。
 """
+
+from __future__ import annotations
 
 import json
 import os
