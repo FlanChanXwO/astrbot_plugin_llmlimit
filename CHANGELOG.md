@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1] - 2026-05-18
+
+### Fixed
+
+- **`clear_user_usage` 仅清除 individual 配额**：扩展为同时清除已知群组中的 personal key（independent 模式），不触及 shared 群组计数器
+- **`/limit_admin clear` count==0 时无提示**：当无启用维度时输出明确提示，而非仅显示计数
+
+---
+
 ## [1.3.0] - 2026-05-18
 
 ### Added
