@@ -5,9 +5,21 @@ Mock AstrBot 框架组件（Star, Context, KV store），
 使单元测试不依赖完整 AstrBot 运行时。
 """
 
+import os
+import sys
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+@pytest.fixture
+def tmp_plugin_dir(tmp_path):
+    """临时插件目录，包含 data/ 子目录。"""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    return str(tmp_path)
 
 
 @pytest.fixture
@@ -16,6 +28,9 @@ def mock_plugin():
     plugin = MagicMock()
     plugin.put_kv_data = AsyncMock()
     plugin.get_kv_data = AsyncMock(return_value=0)
+    plugin.config_mgr = MagicMock()
+    plugin.config_mgr.max_history_events = 200
+    plugin.config_mgr.history_retention_days = 0
     return plugin
 
 
@@ -95,3 +110,10 @@ def mock_event():
     event.set_result = MagicMock()
     event.stop_event = MagicMock()
     return event
+
+
+@pytest.fixture
+def data_store(tmp_plugin_dir):
+    """创建指向临时目录的 PluginDataStore。"""
+    from core.data_store import PluginDataStore
+    return PluginDataStore(tmp_plugin_dir)

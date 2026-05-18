@@ -150,11 +150,106 @@ var ApiModule = {
   },
 
   // call history
-  async getCallHistory() {
+  async getCallHistory(page, pageSize) {
+    var bridge = getBridge();
+    if (!bridge) return { items: [], total: 0, page: 1, pageSize: 50 };
+    page = page || 1;
+    pageSize = pageSize || 50;
+    try { return handle(await bridge.apiPost('call-history', { page: page, pageSize: pageSize })); }
+    catch (err) { apiError(err); }
+  },
+  async deleteCallHistory(tsList) {
+    var bridge = getBridge();
+    if (!bridge) throw new Error('API bridge not available');
+    try {
+      var r = await bridge.apiPost('call-history/delete', { ts_list: tsList });
+      if (r === false || r === null || r === undefined || (r && r.success === false)) {
+        throw new Error(r?.error || '删除失败');
+      }
+      return r;
+    } catch (err) { apiError(err); }
+  },
+  async deleteAllCallHistory() {
+    var bridge = getBridge();
+    if (!bridge) throw new Error('API bridge not available');
+    try {
+      var r = await bridge.apiPost('call-history/delete', { delete_all: true });
+      if (r === false || r === null || r === undefined || (r && r.success === false)) {
+        throw new Error(r?.error || '清空失败');
+      }
+      return r;
+    } catch (err) { apiError(err); }
+  },
+  async cleanupCallHistory(days) {
+    var bridge = getBridge();
+    if (!bridge) throw new Error('API bridge not available');
+    try {
+      var r = await bridge.apiPost('call-history/cleanup', { days: days });
+      if (r === false || r === null || r === undefined || (r && r.success === false)) {
+        throw new Error(r?.error || '清理失败');
+      }
+      return r;
+    } catch (err) { apiError(err); }
+  },
+
+  // exempt users
+  async getExemptUsers() {
     var bridge = getBridge();
     if (!bridge) return [];
-    try { return handle(await bridge.apiGet('call-history')); }
+    try { return handle(await bridge.apiGet('exempt-users')); }
     catch (err) { apiError(err); }
+  },
+  async createExemptUser(userId) {
+    var bridge = getBridge();
+    if (!bridge) throw new Error('API bridge not available');
+    try {
+      var r = await bridge.apiPost('exempt-users/create', { userId });
+      if (r === false || r === null || r === undefined || (r && r.success === false)) {
+        throw new Error(r?.error || '添加失败');
+      }
+      return r;
+    } catch (err) { apiError(err); }
+  },
+  async deleteExemptUser(userId) {
+    var bridge = getBridge();
+    if (!bridge) throw new Error('API bridge not available');
+    try {
+      var r = await bridge.apiPost('exempt-users/delete', { userId });
+      if (r === false || r === null || r === undefined || (r && r.success === false)) {
+        throw new Error(r?.error || '删除失败');
+      }
+      return r;
+    } catch (err) { apiError(err); }
+  },
+
+  // priority users
+  async getPriorityUsers() {
+    var bridge = getBridge();
+    if (!bridge) return [];
+    try { return handle(await bridge.apiGet('priority-users')); }
+    catch (err) { apiError(err); }
+  },
+  async createPriorityUser(userId) {
+    var bridge = getBridge();
+    if (!bridge) throw new Error('API bridge not available');
+    try {
+      var r = await bridge.apiPost('priority-users/create', { userId });
+      if (r === false || r === null || r === undefined || (r && r.success === false)) {
+        throw new Error(r?.error || '添加失败');
+      }
+      return r;
+    } catch (err) { apiError(err); }
+  },
+  async deletePriorityUser(userId) {
+    var bridge = getBridge();
+    if (!bridge) throw new Error('API bridge not available');
+    try {
+      var r = await bridge.apiPost('priority-users/delete', { userId });
+      if (r === false || r === null || r === undefined || (r && r.success === false)) {
+        throw new Error(r?.error || '删除失败');
+      }
+      return r;
+    } catch (err) { apiError(err); }
   },
 };
 

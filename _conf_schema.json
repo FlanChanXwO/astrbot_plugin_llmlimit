@@ -42,75 +42,49 @@
       "enabled_limit_types": {
         "description": "启用的限制维度",
         "type": "list",
-        "default": ["daily"],
+        "default": [
+          "daily"
+        ],
         "items": {
           "type": "string"
         },
-        "options": ["daily", "weekly", "monthly", "timeperiod"],
+        "options": [
+          "daily",
+          "weekly",
+          "monthly",
+          "timeperiod"
+        ],
         "hint": "选择同时生效的限流维度，任一维度超额即拦截。daily=日限，weekly=周限，monthly=月限，timeperiod=自定义时间段。"
-      },
-      "exempt_users": {
-        "description": "豁免用户ID列表",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        },
-        "hint": "名单内用户完全跳过所有限流检查（日/周/月/时间段/群组限制均不生效）。每个元素为一个用户ID，建议仅管理员使用。"
-      },
-      "priority_users": {
-        "description": "优先用户ID列表",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        },
-        "hint": "优先用户在共享群组模式下不受群成员共享池限制（享有独立配额），但仍受日/周/月/时间段及用户特定限制约束。"
-      },
-      "group_mode_settings": {
-        "description": "群组配额模式",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        },
-        "hint": "格式：群ID:shared（共享池）或 群ID:individual（各自独立）。未设置默认共享。每个元素占一行，如 123456:shared。"
-      },
-      "user_limits": {
-        "description": "用户特定限制",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        },
-        "hint": "格式：用户ID:次数，覆盖默认限额。例如 123456789:100 表示该用户每天可调用 100 次。优先级：用户特定 > 群组特定 > 默认。"
-      },
-      "group_limits": {
-        "description": "群组特定限制",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        },
-        "hint": "格式：群ID:次数，覆盖默认限额。例如 123456:50 表示该群每天可调用 50 次。优先级：用户特定 > 群组特定 > 默认。"
-      },
-      "time_period_limits": {
-        "description": "时间段限制",
-        "type": "list",
-        "default": [],
-        "items": {
-          "type": "string"
-        },
-        "hint": "格式：HH:MM-HH:MM:次数[:enabled]。HH=0-23，MM=0-59，支持跨天时段（如 22:00-06:00）。次数为该时段内最大调用次数。:enabled 可省略，默认 true。"
       },
       "skip_patterns": {
         "description": "跳过消息前缀",
         "type": "list",
-        "default": ["#", "*"],
+        "default": [
+          "#",
+          "*"
+        ],
         "items": {
           "type": "string"
         },
         "hint": "以此字符串开头的消息跳过限流检查且不计入使用次数。建议用指令前缀（如 #、/、*），避免系统消息误算到次数中。"
+      }
+    }
+  },
+  "history": {
+    "description": "调用历史设置",
+    "type": "object",
+    "items": {
+      "retention_days": {
+        "description": "保留天数",
+        "type": "int",
+        "default": 30,
+        "hint": "调用历史保留天数（0=不自动清理）。每天自动删除超过此天数的旧记录。"
+      },
+      "max_events": {
+        "description": "最大事件数",
+        "type": "int",
+        "default": 200,
+        "hint": "调用历史最大保留条数（50-10000）。超过上限时自动截断，保留最新记录。"
       }
     }
   },

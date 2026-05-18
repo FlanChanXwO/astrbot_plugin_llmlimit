@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.2.0] - 2026-05-18
+
+### Added
+
+- **独立持久化层**：`core/data_store.py` PluginDataStore，Web UI 管理的 6 类数据（用户限制/群组限制/群组模式/时间段限制/豁免用户/优先用户）独立于 AstrBotConfig 存储为 `plugin_data.json`，不受 `check_config_integrity()` 影响
+- **数据迁移机制**：`ConfigManager._load_or_migrate_*()` 首批从 AstrBotConfig 迁移旧数据到独立存储，后续优先从独立存储读取
+
+### Changed
+
+- **`_conf_schema.json`**：移除 6 个 `type: "text"` 的 Web UI 管理字段，仅保留标量配置项
+- **`main.py`**：通过 `StarTools.get_data_dir(plugin_name="astrbot_plugin_llmlimit")` 获取数据目录，6 个 `_save_*()` 方法改为写入 PluginDataStore
+- **页面目录**：`pages/llmlimit/` → `pages/dashboard/` 重命名
+
+### Fixed
+
+- **插件重载后 Web UI 数据丢失**：PluginDataStore 独立持久化，数据不再被 AstrBotConfig 完整性检查清除
+- **Web UI 页面加载时不显示已有数据**：`app.js` ready() 轮询等待 `window.AstrBotPluginPage` 桥接注入后再调用 `loadAll()`
+
+### Testing
+
+- 新增 `TestDataStore` 测试类 10 个用例
+- 测试总计 82 passed（+10）
+
+---
+
 ## [1.1.0] - 2026-05-17
 
 ### Added

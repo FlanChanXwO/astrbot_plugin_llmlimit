@@ -9,7 +9,13 @@ const state = {
   userLimits: [],
   groupLimits: [],
   timePeriodLimits: [],
-  callHistory: [],
+  historyItems: [],
+  historyPage: 1,
+  historyPageSize: 50,
+  historyTotal: 0,
+  historySelected: new Set(),
+  exemptUsers: [],
+  priorityUsers: [],
   editingUserIndex: -1,
   editingGroupIndex: -1,
   editingPeriodIndex: -1,
@@ -29,8 +35,16 @@ const dom = {
   tabGroups: $('#tabGroups'),
   tabPeriods: $('#tabPeriods'),
   tabHistory: $('#tabHistory'),
+  tabExempt: $('#tabExempt'),
+  tabPriority: $('#tabPriority'),
   historyList: $('#historyList'),
   btnRefreshHistory: $('#btnRefreshHistory'),
+  btnDeleteAllHistory: $('#btnDeleteAllHistory'),
+  cbSelectAll: $('#cbSelectAll'),
+  btnDeleteSelected: $('#btnDeleteSelected'),
+  selPageSize: $('#selPageSize'),
+  historyPagination: $('#historyPagination'),
+  historyToolbar: $('#historyToolbar'),
   userList: $('#userList'),
   groupList: $('#groupList'),
   periodList: $('#periodList'),
@@ -56,22 +70,36 @@ const dom = {
   confirmMsg: $('#confirmMsg'),
   confirmOk: $('#confirmOk'),
   confirmCancel: $('#confirmCancel'),
-  themeToggle: $('#themeToggle'),
   btnAddUser: $('#btnAddUser'),
   btnAddGroup: $('#btnAddGroup'),
   btnAddPeriod: $('#btnAddPeriod'),
+  btnAddExempt: $('#btnAddExempt'),
+  btnAddPriority: $('#btnAddPriority'),
+  exemptList: $('#exemptList'),
+  priorityList: $('#priorityList'),
+  exemptForm: $('#exemptForm'),
+  priorityForm: $('#priorityForm'),
+  inputExemptUserId: $('#inputExemptUserId'),
+  inputPriorityUserId: $('#inputPriorityUserId'),
 };
 
 // ── Lifecycle ────────────────────────────────────────────────────────
 
 async function ready() {
-  // Theme + event bindings must work even if the API bridge is not yet available
-  // Theme init must not block event bindings (sandboxed iframe: no localStorage)
   try { initTheme(); } catch (e) { console.warn('[llmlimit] initTheme failed:', e); }
   bindEvents();
   document.body.classList.add('js-loaded');
 
-  // Data loading requires the AstrBotPluginPage bridge; handle gracefully
+  // 等待 AstrBotPluginPage 桥接注入（服务器动态注入为最后一个 <script>）
+  for (var retries = 0; retries < 50 && !window.AstrBotPluginPage; retries++) {
+    await new Promise(function (r) { setTimeout(r, 100); });
+  }
+
+  if (!window.AstrBotPluginPage) {
+    console.warn('[llmlimit] AstrBotPluginPage bridge not available after waiting');
+    return;
+  }
+
   try {
     await api.ready();
     await loadAll();
@@ -84,14 +112,18 @@ async function ready() {
 
 async function loadAll() {
   try {
-    const [users, groups, timePeriods] = await Promise.all([
+    const [users, groups, timePeriods, exemptUsers, priorityUsers] = await Promise.all([
       api.getUserLimits(),
       api.getGroupLimits(),
       api.getTimePeriodLimits(),
+      api.getExemptUsers(),
+      api.getPriorityUsers(),
     ]);
     state.userLimits = users || [];
     state.groupLimits = groups || [];
     state.timePeriodLimits = timePeriods || [];
+    state.exemptUsers = exemptUsers || [];
+    state.priorityUsers = priorityUsers || [];
     renderLists();
   } catch (err) {
     showToast('加载失败: ' + err.message, 'error');
@@ -104,6 +136,8 @@ function renderLists() {
   renderUserList();
   renderGroupList();
   renderPeriodList();
+  renderExemptList();
+  renderPriorityList();
 }
 
 function renderUserList() {
@@ -179,33 +213,87 @@ function renderPeriodList() {
   `).join('');
 }
 
-// ── History ───────────────────────────────────────────────────────────
+function renderExemptList() {
+  const list = state.exemptUsers;
+  if (list.length === 0) {
+    dom.exemptList.innerHTML = '<div class="empty-state"><p>暂无豁免用户，点击「添加用户」开始配置。</p></div>';
+    return;
+  }
+  dom.exemptList.innerHTML = list.map((userId) => `
+    <div class="item-row">
+      <div class="item-info">
+        <div class="item-name">
+          ${escHtml(userId)}
+          <span class="item-badge badge-success">豁免</span>
+        </div>
+        <div class="item-meta">用户ID: ${escHtml(userId)}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-sm btn-danger-outline" data-action="delete-exempt" data-user-id="${escHtml(userId)}">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPriorityList() {
+  const list = state.priorityUsers;
+  if (list.length === 0) {
+    dom.priorityList.innerHTML = '<div class="empty-state"><p>暂无优先用户，点击「添加用户」开始配置。</p></div>';
+    return;
+  }
+  dom.priorityList.innerHTML = list.map((userId) => `
+    <div class="item-row">
+      <div class="item-info">
+        <div class="item-name">
+          ${escHtml(userId)}
+          <span class="item-badge badge-primary">优先</span>
+        </div>
+        <div class="item-meta">用户ID: ${escHtml(userId)}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-sm btn-danger-outline" data-action="delete-priority" data-user-id="${escHtml(userId)}">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
 
 async function loadHistory() {
+  state.historySelected = new Set();
   try {
-    state.callHistory = await api.getCallHistory() || [];
+    var data = await api.getCallHistory(state.historyPage, state.historyPageSize);
+    state.historyItems = (data && data.items) ? data.items : [];
+    state.historyTotal = (data && data.total) ? data.total : 0;
   } catch (err) {
-    state.callHistory = [];
+    state.historyItems = [];
+    state.historyTotal = 0;
   }
   renderHistoryList();
+  renderHistoryPagination();
 }
 
 function renderHistoryList() {
-  var list = state.callHistory;
+  var list = state.historyItems;
   if (list.length === 0) {
+    dom.historyToolbar.style.display = 'none';
     dom.historyList.innerHTML = '<div class="empty-state"><p>暂无调用记录。</p></div>';
     return;
   }
+  dom.historyToolbar.style.display = '';
+  var hasSelected = state.historySelected.size > 0;
+  dom.btnDeleteSelected.disabled = !hasSelected;
+  dom.cbSelectAll.checked = list.length > 0 && list.every(function (e) { return state.historySelected.has(e.ts); });
   var rows = list.map(function (e) {
     var d = new Date(e.ts * 1000);
     var time = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     var date = d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+    var checked = state.historySelected.has(e.ts) ? ' checked' : '';
     var resultBadge = e.allowed
       ? '<span class="item-badge badge-success">放行</span>'
       : '<span class="item-badge badge-warning">拦截</span>';
     var typeLabel = e.limit_type || 'daily';
     var usageInfo = e.limit > 0 ? (e.usage + '/' + e.limit) : '-';
     return '<tr>' +
+      '<td><label class="checkbox-inline"><input type="checkbox" class="cb-row" data-ts="' + e.ts + '"' + checked + '/></label></td>' +
       '<td>' + escHtml(date + ' ' + time) + '</td>' +
       '<td title="' + escHtml(e.user_id) + '">' + escHtml(e.user_id.substring(0, 12)) + '</td>' +
       '<td>' + escHtml(e.group_id ? e.group_id.substring(0, 12) : '-') + '</td>' +
@@ -216,8 +304,86 @@ function renderHistoryList() {
       '</tr>';
   });
   dom.historyList.innerHTML = '<table class="history-table"><thead><tr>' +
-    '<th>时间</th><th>用户</th><th>群</th><th>结果</th><th>类型</th><th>用量</th><th>消息</th>' +
+    '<th style="width:32px"></th><th>时间</th><th>用户</th><th>群</th><th>结果</th><th>类型</th><th>用量</th><th>消息</th>' +
     '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+}
+
+function renderHistoryPagination() {
+  var total = state.historyTotal;
+  var page = state.historyPage;
+  var pageSize = state.historyPageSize;
+  if (total <= 0) {
+    dom.historyPagination.innerHTML = '';
+    return;
+  }
+  var totalPages = Math.ceil(total / pageSize);
+  var html = '<span class="pagination-info">第 ' + page + '/' + totalPages + ' 页，共 ' + total + ' 条</span>';
+  html += '<button class="btn btn-sm btn-secondary" ' + (page <= 1 ? 'disabled' : '') + ' data-page="' + (page - 1) + '">上一页</button>';
+  html += '<button class="btn btn-sm btn-secondary" ' + (page >= totalPages ? 'disabled' : '') + ' data-page="' + (page + 1) + '">下一页</button>';
+  dom.historyPagination.innerHTML = html;
+}
+
+function changePage(newPage) {
+  if (newPage < 1) return;
+  var totalPages = Math.ceil(state.historyTotal / state.historyPageSize);
+  if (newPage > totalPages) return;
+  state.historyPage = newPage;
+  loadHistory();
+}
+
+function changePageSize(newSize) {
+  state.historyPageSize = newSize;
+  state.historyPage = 1;
+  loadHistory();
+}
+
+function toggleSelectAll() {
+  var allTs = state.historyItems.map(function (e) { return e.ts; });
+  if (dom.cbSelectAll.checked) {
+    allTs.forEach(function (ts) { state.historySelected.add(ts); });
+  } else {
+    allTs.forEach(function (ts) { state.historySelected.delete(ts); });
+  }
+  renderHistoryList();
+}
+
+function toggleSelectRow(ts, checked) {
+  if (checked) {
+    state.historySelected.add(ts);
+  } else {
+    state.historySelected.delete(ts);
+  }
+  dom.btnDeleteSelected.disabled = state.historySelected.size === 0;
+  dom.cbSelectAll.checked = state.historyItems.length > 0 && state.historyItems.every(function (e) { return state.historySelected.has(e.ts); });
+}
+
+async function deleteSelectedHistory() {
+  if (state.historySelected.size === 0) return;
+  var ok = await confirmDialog('确认删除', '确定要删除选中的 ' + state.historySelected.size + ' 条记录吗？此操作不可撤销。');
+  if (!ok) return;
+  try {
+    var tsList = Array.from(state.historySelected);
+    var r = await api.deleteCallHistory(tsList);
+    showToast('已删除 ' + (r && r.removed ? r.removed : tsList.length) + ' 条记录');
+    state.historySelected = new Set();
+    loadHistory();
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
+async function deleteAllHistory() {
+  var ok = await confirmDialog('清空全部', '确定要清空所有调用历史记录吗？此操作不可撤销。');
+  if (!ok) return;
+  try {
+    var r = await api.deleteAllCallHistory();
+    showToast('已清空 ' + (r && r.removed ? r.removed : '全部') + ' 条记录');
+    state.historyPage = 1;
+    state.historySelected = new Set();
+    loadHistory();
+  } catch (err) {
+    showToast('清空失败: ' + err.message, 'error');
+  }
 }
 
 // ── Tab switching ────────────────────────────────────────────────────
@@ -231,7 +397,9 @@ function switchTab(tab) {
   dom.tabGroups.hidden = tab !== 'groups';
   dom.tabPeriods.hidden = tab !== 'periods';
   dom.tabHistory.hidden = tab !== 'history';
-  if (tab === 'history' && state.callHistory.length === 0) {
+  dom.tabExempt.hidden = tab !== 'exempt';
+  dom.tabPriority.hidden = tab !== 'priority';
+  if (tab === 'history') {
     loadHistory();
   }
 }
@@ -301,10 +469,30 @@ function openPeriodPanel(index) {
   showPanel('periodForm');
 }
 
+function openExemptPanel() {
+  state.editingUserIndex = -1;
+  state.editingGroupIndex = -1;
+  state.editingPeriodIndex = -1;
+  dom.inputExemptUserId.value = '';
+  dom.panelTitle.textContent = '添加豁免用户';
+  showPanel('exemptForm');
+}
+
+function openPriorityPanel() {
+  state.editingUserIndex = -1;
+  state.editingGroupIndex = -1;
+  state.editingPeriodIndex = -1;
+  dom.inputPriorityUserId.value = '';
+  dom.panelTitle.textContent = '添加优先用户';
+  showPanel('priorityForm');
+}
+
 function showPanel(formId) {
   dom.userForm.hidden = formId !== 'userForm';
   dom.groupForm.hidden = formId !== 'groupForm';
   dom.periodForm.hidden = formId !== 'periodForm';
+  dom.exemptForm.hidden = formId !== 'exemptForm';
+  dom.priorityForm.hidden = formId !== 'priorityForm';
   dom.editPanel.classList.add('panel-visible');
   dom.panelOverlay.classList.add('visible');
   state.panelVisible = true;
@@ -434,6 +622,62 @@ async function deletePeriod(index) {
   }
 }
 
+// ── CRUD: exempt users ────────────────────────────────────────────────
+
+async function saveExemptUser(e) {
+  e.preventDefault();
+  const userId = dom.inputExemptUserId.value.trim();
+  if (!userId) { showToast('用户ID不能为空', 'error'); return; }
+  try {
+    await api.createExemptUser(userId);
+    showToast('豁免用户已添加');
+    closePanel();
+    await loadAll();
+  } catch (err) {
+    showToast('添加失败: ' + err.message, 'error');
+  }
+}
+
+async function deleteExemptUser(userId) {
+  const ok = await confirmDialog('确认删除', `确定要将用户 ${userId} 从豁免名单中移除吗？`);
+  if (!ok) return;
+  try {
+    await api.deleteExemptUser(userId);
+    showToast('豁免用户已删除');
+    await loadAll();
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
+// ── CRUD: priority users ──────────────────────────────────────────────
+
+async function savePriorityUser(e) {
+  e.preventDefault();
+  const userId = dom.inputPriorityUserId.value.trim();
+  if (!userId) { showToast('用户ID不能为空', 'error'); return; }
+  try {
+    await api.createPriorityUser(userId);
+    showToast('优先用户已添加');
+    closePanel();
+    await loadAll();
+  } catch (err) {
+    showToast('添加失败: ' + err.message, 'error');
+  }
+}
+
+async function deletePriorityUser(userId) {
+  const ok = await confirmDialog('确认删除', `确定要将用户 ${userId} 从优先名单中移除吗？`);
+  if (!ok) return;
+  try {
+    await api.deletePriorityUser(userId);
+    showToast('优先用户已删除');
+    await loadAll();
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
 // ── Toast ────────────────────────────────────────────────────────────
 
 function showToast(message, type) {
@@ -463,27 +707,6 @@ function closeConfirm(res) {
     state.confirmResolve(res);
     state.confirmResolve = null;
   }
-}
-
-// ── Theme ────────────────────────────────────────────────────────────
-
-function initTheme() {
-  if (typeof initThemeNative === 'function') {
-    initThemeNative();
-  }
-  updateThemeLabel();
-}
-
-function toggleTheme() {
-  if (typeof toggleThemeNative === 'function') {
-    toggleThemeNative();
-  }
-  updateThemeLabel();
-}
-
-function updateThemeLabel() {
-  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  dom.themeToggle.textContent = dark ? '浅色' : '深色';
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -524,9 +747,6 @@ function bindEvents() {
     if (btn) switchTab(btn.dataset.tab);
   }, 'tabBar');
 
-  // Theme
-  safely(dom.themeToggle, 'click', toggleTheme, 'themeToggle');
-
   // Panel
   safely(dom.panelClose, 'click', closePanel, 'panelClose');
   safely(dom.panelOverlay, 'click', closePanel, 'panelOverlay');
@@ -535,16 +755,22 @@ function bindEvents() {
   safely(dom.btnAddUser, 'click', () => openUserPanel(-1), 'btnAddUser');
   safely(dom.btnAddGroup, 'click', () => openGroupPanel(-1), 'btnAddGroup');
   safely(dom.btnAddPeriod, 'click', () => openPeriodPanel(-1), 'btnAddPeriod');
+  safely(dom.btnAddExempt, 'click', openExemptPanel, 'btnAddExempt');
+  safely(dom.btnAddPriority, 'click', openPriorityPanel, 'btnAddPriority');
 
   // Form submissions
   safely(dom.userForm, 'submit', saveUser, 'userForm');
   safely(dom.groupForm, 'submit', saveGroup, 'groupForm');
   safely(dom.periodForm, 'submit', savePeriod, 'periodForm');
+  safely(dom.exemptForm, 'submit', saveExemptUser, 'exemptForm');
+  safely(dom.priorityForm, 'submit', savePriorityUser, 'priorityForm');
 
   // Form cancel buttons
   safely(document.querySelector('#userFormCancel'), 'click', closePanel, 'userFormCancel');
   safely(document.querySelector('#groupFormCancel'), 'click', closePanel, 'groupFormCancel');
   safely(document.querySelector('#periodFormCancel'), 'click', closePanel, 'periodFormCancel');
+  safely(document.querySelector('#exemptFormCancel'), 'click', closePanel, 'exemptFormCancel');
+  safely(document.querySelector('#priorityFormCancel'), 'click', closePanel, 'priorityFormCancel');
 
   // Period enabled toggle label
   safely(dom.inputPeriodEnabled, 'change', updatePeriodToggleLabel, 'inputPeriodEnabled');
@@ -555,6 +781,33 @@ function bindEvents() {
 
   // Refresh history
   safely(dom.btnRefreshHistory, 'click', loadHistory, 'btnRefreshHistory');
+
+  // Delete all history
+  safely(dom.btnDeleteAllHistory, 'click', deleteAllHistory, 'btnDeleteAllHistory');
+
+  // Select all history
+  safely(dom.cbSelectAll, 'change', toggleSelectAll, 'cbSelectAll');
+
+  // Delete selected history
+  safely(dom.btnDeleteSelected, 'click', deleteSelectedHistory, 'btnDeleteSelected');
+
+  // Page size selector
+  safely(dom.selPageSize, 'change', function () { changePageSize(parseInt(dom.selPageSize.value, 10)); }, 'selPageSize');
+
+  // History pagination
+  safely(dom.historyPagination, 'click', function (e) {
+    var btn = e.target.closest('[data-page]');
+    if (btn) changePage(parseInt(btn.dataset.page, 10));
+  }, 'historyPagination');
+
+  // History table row checkboxes
+  safely(dom.historyList, 'click', function (e) {
+    var cb = e.target.closest('.cb-row');
+    if (cb) {
+      var ts = parseFloat(cb.dataset.ts);
+      toggleSelectRow(ts, cb.checked);
+    }
+  }, 'historyListCheckboxes');
 
   // List item delegation (edit / delete)
   safely(dom.userList, 'click', (e) => {
@@ -580,6 +833,18 @@ function bindEvents() {
     if (btn.dataset.action === 'edit-period') openPeriodPanel(idx);
     else if (btn.dataset.action === 'delete-period') deletePeriod(idx);
   }, 'periodList');
+
+  safely(dom.exemptList, 'click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'delete-exempt') deleteExemptUser(btn.dataset.userId);
+  }, 'exemptList');
+
+  safely(dom.priorityList, 'click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'delete-priority') deletePriorityUser(btn.dataset.userId);
+  }, 'priorityList');
 
   console.log('[llmlimit] bindEvents() done — ' + bindOkCount + '/' + bindTotalCount + ' bindings OK');
 }

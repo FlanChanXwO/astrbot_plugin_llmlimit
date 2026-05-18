@@ -7,13 +7,12 @@ import time
 
 import pytest
 
-from core.call_history import MAX_EVENTS, CallHistoryTracker
+from core.call_history import CallHistoryTracker
 
 
 @pytest.fixture
 def tracker(mock_kv):
     """返回一个使用内存 KV Mock 的 CallHistoryTracker。"""
-    # mock_kv.plugin 是安装了 KVMock side_effect 的 mock_plugin
     return CallHistoryTracker(mock_kv.plugin)
 
 
@@ -108,9 +107,9 @@ class TestGetRecent:
 
 class TestTrim:
     @pytest.mark.asyncio
-    async def test_record_trims_to_max(self, tracker, monkeypatch):
-        # 临时减小 MAX_EVENTS 以避免创建 200+ 条记录
-        monkeypatch.setattr("core.call_history.MAX_EVENTS", 5)
+    async def test_record_trims_to_max(self, tracker):
+        # 临时减小 max 以避免创建 200+ 条记录
+        tracker._plugin.config_mgr.max_history_events = 5
         for i in range(10):
             await _record(tracker, user_id=f"user_{i}")
         events = await tracker.get_recent()
@@ -120,8 +119,8 @@ class TestTrim:
         assert events[4]["user_id"] == "user_5"
 
     @pytest.mark.asyncio
-    async def test_exact_max(self, tracker, monkeypatch):
-        monkeypatch.setattr("core.call_history.MAX_EVENTS", 3)
+    async def test_exact_max(self, tracker):
+        tracker._plugin.config_mgr.max_history_events = 3
         await _record(tracker, user_id="a")
         await _record(tracker, user_id="b")
         await _record(tracker, user_id="c")

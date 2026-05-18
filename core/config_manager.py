@@ -12,8 +12,9 @@ import datetime
 class ConfigManager:
     """配置管理类 — 从 AstrBotConfig 加载并缓存所有限制配置"""
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, data_store=None):
         self.config = config
+        self._data_store = data_store
         self.group_limits: dict[str, int] = {}
         self.user_limits: dict[str, int] = {}
         self.group_modes: dict[str, str] = {}
@@ -25,16 +26,39 @@ class ConfigManager:
     def load(self):
         """加载所有配置项"""
         limits = self.config.get("limits", {})
-        self._parse_text_list(
-            limits.get("exempt_users", ""), into_set=self.exempt_users
-        )
-        self._parse_text_list(
-            limits.get("priority_users", ""), into_set=self.priority_users
-        )
-        self._parse_kv_lines(limits.get("user_limits", ""), self.user_limits)
-        self._parse_kv_lines(limits.get("group_limits", ""), self.group_limits)
-        self._parse_kv_lines(limits.get("group_mode_settings", ""), self.group_modes)
-        self._parse_time_period_limits(limits.get("time_period_limits", ""))
+
+        if self._data_store:
+            data = self._data_store.load()
+            self._load_or_migrate_set(data, limits, "exempt_users", self.exempt_users)
+            self._load_or_migrate_set(data, limits, "priority_users", self.priority_users)
+            self._load_or_migrate_kv(data, limits, "user_limits", self.user_limits)
+            self._load_or_migrate_kv(data, limits, "group_limits", self.group_limits)
+            self._load_or_migrate_kv(data, limits, "group_mode_settings", self.group_modes)
+            self._load_or_migrate_time_period(data, limits)
+            try:
+                from astrbot.api import logger as _log
+            except ImportError:
+                import logging
+                _log = logging.getLogger(__name__)
+            _log.info(
+                "ConfigManager 从 data_store 加载: exempt=%d, priority=%d, "
+                "user_limits=%d, group_limits=%d, group_modes=%d, time_periods=%d",
+                len(self.exempt_users), len(self.priority_users),
+                len(self.user_limits), len(self.group_limits),
+                len(self.group_modes), len(self.time_period_limits),
+            )
+        else:
+            self._parse_text_list(
+                limits.get("exempt_users", ""), into_set=self.exempt_users
+            )
+            self._parse_text_list(
+                limits.get("priority_users", ""), into_set=self.priority_users
+            )
+            self._parse_kv_lines(limits.get("user_limits", ""), self.user_limits)
+            self._parse_kv_lines(limits.get("group_limits", ""), self.group_limits)
+            self._parse_kv_lines(limits.get("group_mode_settings", ""), self.group_modes)
+            self._parse_time_period_limits(limits.get("time_period_limits", ""))
+
         self.skip_patterns = limits.get("skip_patterns", ["#", "*"])
         self._validate_reset_time(limits)
 
@@ -75,6 +99,18 @@ class ConfigManager:
 
     def get_monthly_reset_day(self) -> int:
         return self.config.get("limits", {}).get("monthly_reset_day", 1)
+
+    # ── history ────────────────────────────────────────────────
+
+    @property
+    def history_retention_days(self) -> int:
+        """历史记录保留天数，0=不自动清理"""
+        return int(self.config.get("history", {}).get("retention_days", 30))
+
+    @property
+    def max_history_events(self) -> int:
+        """最大历史事件数"""
+        return int(self.config.get("history", {}).get("max_events", 200))
 
     # ── helpers ───────────────────────────────────────────────
 
@@ -168,3 +204,48 @@ class ConfigManager:
                 raise ValueError
         except (ValueError, AttributeError):
             limits["daily_reset_time"] = "00:00"
+
+    # ── migration helpers ───────────────────────────────────────
+
+    def _load_or_migrate_kv(self, data: dict, limits: dict, key: str, target: dict):
+        """从 data_store 加载 kv，或从 AstrBotConfig 迁移旧数据。"""
+        if key in data and data[key]:
+            # data_store 中有数据，直接使用
+            target.update(data[key])
+        elif limits.get(key):
+            # 从 AstrBotConfig 迁移旧数据
+            self._parse_kv_lines(limits.get(key, ""), target)
+            if target:
+                self._data_store.save(key, target)
+
+    def _load_or_migrate_set(self, data: dict, limits: dict, key: str, target: set):
+        """从 data_store 加载 set，或从 AstrBotConfig 迁移旧数据。"""
+        if key in data and data[key]:
+            # data_store 中以 list 形式存储
+            for item in data[key]:
+                target.add(str(item).strip())
+        elif limits.get(key):
+            # 从 AstrBotConfig 迁移旧数据
+            self._parse_text_list(limits.get(key, ""), into_set=target)
+            if target:
+                self._data_store.save(key, sorted(target))
+
+    def _load_or_migrate_time_period(self, data: dict, limits: dict):
+        """从 data_store 加载时间段，或从 AstrBotConfig 迁移旧数据。"""
+        key = "time_period_limits"
+        if key in data and data[key]:
+            # data_store 中以 list[dict] 形式存储
+            for p in data[key]:
+                if isinstance(p, dict) and p.get("enabled", True):
+                    self.time_period_limits.append(
+                        {
+                            "start_time": p["start_time"],
+                            "end_time": p["end_time"],
+                            "limit": p["limit"],
+                        }
+                    )
+        elif limits.get(key):
+            # 从 AstrBotConfig 迁移旧数据
+            self._parse_time_period_limits(limits.get(key, ""))
+            if self.time_period_limits:
+                self._data_store.save(key, self.time_period_limits)
