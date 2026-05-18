@@ -104,7 +104,11 @@ Period keys are date-based (daily: `YYYY-MM-DD`, weekly: `YYYY-Www`, monthly: `Y
 - Python 3.9 compat: use `from __future__ import annotations` for `X | None` syntax
 - Logger formatting: `logger.info("msg %s", arg)` — `%` placeholders, not `{}`
 - `@filter.command_group` decorator: non-async, no params (Dashboard compatibility)
-- Plugin version bump: update `main.py` `@register(...)` decorator, `metadata.yaml`, and `CHANGELOG.md`
+- Plugin version bump rules (semantic versioning). **Must sync `metadata.yaml` and `CHANGELOG.md`:**
+  - **New feature** → `1.0.0` → `1.1.0` (minor bump): new API endpoints, new config fields, new frontend tabs/features, new core modules
+  - **Fix / optimization** → `1.0.0` → `1.0.1` (patch bump): bug fixes, performance tweaks, style adjustments, config schema corrections, typos
+  - **Major refactor** → `1.0.0` → `2.0.0` (major bump): breaking API changes, config format migration, core architecture rewrite, data format changes that require manual migration
+  - Update `main.py` `@register(...)` decorator version, `metadata.yaml` `version:` field, and add a new `## [X.Y.Z]` section to `CHANGELOG.md`
 - Releases: automatic via `release-from-changelog.yml` GitHub Actions workflow on CHANGELOG.md push to master
 
 ### Ruff
