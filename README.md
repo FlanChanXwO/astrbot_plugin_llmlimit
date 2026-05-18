@@ -1,6 +1,12 @@
-# ⚡ LLMLimit 插件（astrbot_plugin_llmlimit）
+# LLMLimit 插件（astrbot_plugin_llmlimit）
 
 <div align="center">
+
+<img src="https://raw.githubusercontent.com/FlanChanXwO/astrbot_plugin_llmlimit/master/logo.png" width="400" alt="llmlimit 插件"/>
+
+<br/>
+
+<img src="https://count.getloli.com/@astrbot_plugin_llmlimit?name=astrbot_plugin_llmlimit&theme=rule34&padding=7&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" alt="Moe Counter">
 
 **精准控制 LLM 的调用频率与使用额度，支持日/周/月/自定义时间段的多维度限流策略。**
 
