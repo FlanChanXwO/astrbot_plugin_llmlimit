@@ -30,9 +30,7 @@ class TestBuildExceeded:
 
     def test_limit_type_in_label(self):
         cfg = {
-            "messages": {
-                "usage_tip": "您的 {limit_type} 调用次数已用完。"
-            },
+            "messages": {"usage_tip": "您的 {limit_type} 调用次数已用完。"},
             "limits": {"daily_reset_time": "00:00"},
         }
         b = MessageBuilder(cfg)
@@ -41,9 +39,7 @@ class TestBuildExceeded:
 
     def test_timeperiod_label(self):
         cfg = {
-            "messages": {
-                "usage_tip": "您的 {limit_type} 调用次数已用完。"
-            },
+            "messages": {"usage_tip": "您的 {limit_type} 调用次数已用完。"},
             "limits": {"daily_reset_time": "00:00"},
         }
         b = MessageBuilder(cfg)

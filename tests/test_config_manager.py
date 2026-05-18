@@ -93,7 +93,9 @@ class TestParseTimePeriodLimits:
         config = self._make_config("09:00-12:00:3\ntrue\n14:00-18:00:10:true")
         # 注意：格式是 HH:MM-HH:MM:次数[:enabled]
         # 第二行的 "true" 会被跳过（不在正确格式内），第三行正确解析
-        config["limits"]["time_period_limits"] = "09:00-12:00:3:true\n14:00-18:00:10:true"
+        config["limits"]["time_period_limits"] = (
+            "09:00-12:00:3:true\n14:00-18:00:10:true"
+        )
         mgr = ConfigManager(config)
         mgr.load()
         assert len(mgr.time_period_limits) == 2
@@ -265,10 +267,23 @@ class TestDataStore:
         assert mgr.get_group_mode("g2") == "shared"
 
     def test_load_from_data_store_time_periods(self, data_store):
-        data_store.save("time_period_limits", [
-            {"start_time": "09:00", "end_time": "12:00", "limit": 5, "enabled": True},
-            {"start_time": "14:00", "end_time": "18:00", "limit": 10, "enabled": True},
-        ])
+        data_store.save(
+            "time_period_limits",
+            [
+                {
+                    "start_time": "09:00",
+                    "end_time": "12:00",
+                    "limit": 5,
+                    "enabled": True,
+                },
+                {
+                    "start_time": "14:00",
+                    "end_time": "18:00",
+                    "limit": 10,
+                    "enabled": True,
+                },
+            ],
+        )
         config = self._make_scalar_config()
         mgr = ConfigManager(config, data_store=data_store)
         mgr.load()
@@ -277,10 +292,23 @@ class TestDataStore:
         assert mgr.time_period_limits[1]["limit"] == 10
 
     def test_disabled_time_period_skipped(self, data_store):
-        data_store.save("time_period_limits", [
-            {"start_time": "09:00", "end_time": "12:00", "limit": 5, "enabled": False},
-            {"start_time": "14:00", "end_time": "18:00", "limit": 10, "enabled": True},
-        ])
+        data_store.save(
+            "time_period_limits",
+            [
+                {
+                    "start_time": "09:00",
+                    "end_time": "12:00",
+                    "limit": 5,
+                    "enabled": False,
+                },
+                {
+                    "start_time": "14:00",
+                    "end_time": "18:00",
+                    "limit": 10,
+                    "enabled": True,
+                },
+            ],
+        )
         config = self._make_scalar_config()
         mgr = ConfigManager(config, data_store=data_store)
         mgr.load()

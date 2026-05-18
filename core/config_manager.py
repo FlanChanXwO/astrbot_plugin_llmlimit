@@ -30,22 +30,30 @@ class ConfigManager:
         if self._data_store:
             data = self._data_store.load()
             self._load_or_migrate_set(data, limits, "exempt_users", self.exempt_users)
-            self._load_or_migrate_set(data, limits, "priority_users", self.priority_users)
+            self._load_or_migrate_set(
+                data, limits, "priority_users", self.priority_users
+            )
             self._load_or_migrate_kv(data, limits, "user_limits", self.user_limits)
             self._load_or_migrate_kv(data, limits, "group_limits", self.group_limits)
-            self._load_or_migrate_kv(data, limits, "group_mode_settings", self.group_modes)
+            self._load_or_migrate_kv(
+                data, limits, "group_mode_settings", self.group_modes
+            )
             self._load_or_migrate_time_period(data, limits)
             try:
                 from astrbot.api import logger as _log
             except ImportError:
                 import logging
+
                 _log = logging.getLogger(__name__)
             _log.info(
                 "ConfigManager 从 data_store 加载: exempt=%d, priority=%d, "
                 "user_limits=%d, group_limits=%d, group_modes=%d, time_periods=%d",
-                len(self.exempt_users), len(self.priority_users),
-                len(self.user_limits), len(self.group_limits),
-                len(self.group_modes), len(self.time_period_limits),
+                len(self.exempt_users),
+                len(self.priority_users),
+                len(self.user_limits),
+                len(self.group_limits),
+                len(self.group_modes),
+                len(self.time_period_limits),
             )
         else:
             self._parse_text_list(
@@ -56,7 +64,9 @@ class ConfigManager:
             )
             self._parse_kv_lines(limits.get("user_limits", ""), self.user_limits)
             self._parse_kv_lines(limits.get("group_limits", ""), self.group_limits)
-            self._parse_kv_lines(limits.get("group_mode_settings", ""), self.group_modes)
+            self._parse_kv_lines(
+                limits.get("group_mode_settings", ""), self.group_modes
+            )
             self._parse_time_period_limits(limits.get("time_period_limits", ""))
 
         self.skip_patterns = limits.get("skip_patterns", ["#", "*"])

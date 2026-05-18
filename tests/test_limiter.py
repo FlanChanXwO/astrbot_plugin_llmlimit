@@ -166,10 +166,12 @@ async def test_default_daily_limit_under_allows(mock_tracker):
 
 @pytest.mark.asyncio
 async def test_weekly_limit(mock_tracker):
-    cfg = _make_config(limits={
-        "enabled_limit_types": ["weekly"],
-        "default_weekly_limit": 100,
-    })
+    cfg = _make_config(
+        limits={
+            "enabled_limit_types": ["weekly"],
+            "default_weekly_limit": 100,
+        }
+    )
     tp_mgr = TimePeriodManager([])
     mock_tracker.get_usage.return_value = 100
     limiter = Limiter(cfg, mock_tracker, tp_mgr)
@@ -180,10 +182,12 @@ async def test_weekly_limit(mock_tracker):
 
 @pytest.mark.asyncio
 async def test_monthly_limit(mock_tracker):
-    cfg = _make_config(limits={
-        "enabled_limit_types": ["monthly"],
-        "default_monthly_limit": 500,
-    })
+    cfg = _make_config(
+        limits={
+            "enabled_limit_types": ["monthly"],
+            "default_monthly_limit": 500,
+        }
+    )
     tp_mgr = TimePeriodManager([])
     mock_tracker.get_usage.return_value = 500
     limiter = Limiter(cfg, mock_tracker, tp_mgr)
@@ -197,10 +201,12 @@ async def test_monthly_limit(mock_tracker):
 
 @pytest.mark.asyncio
 async def test_no_limits_allows(mock_tracker):
-    cfg = _make_config(limits={
-        "enabled_limit_types": [],
-        "default_daily_limit": 0,
-    })
+    cfg = _make_config(
+        limits={
+            "enabled_limit_types": [],
+            "default_daily_limit": 0,
+        }
+    )
     tp_mgr = TimePeriodManager([])
     limiter = Limiter(cfg, mock_tracker, tp_mgr)
     d = await limiter.decide("user_f", None)
@@ -214,10 +220,12 @@ async def test_no_limits_allows(mock_tracker):
 @pytest.mark.asyncio
 async def test_priority_user_not_affected_by_group_shared(mock_tracker):
     """优先用户不受群组共享限额影响"""
-    cfg = _make_config(limits={
-        "priority_users": "vip_user",
-        "group_limits": "group_1:5",
-    })
+    cfg = _make_config(
+        limits={
+            "priority_users": "vip_user",
+            "group_limits": "group_1:5",
+        }
+    )
     tp_mgr = TimePeriodManager([])
     # 群组共享配额用完了，但 vip 用户不受群组限制
     mock_tracker.get_usage.return_value = 0
