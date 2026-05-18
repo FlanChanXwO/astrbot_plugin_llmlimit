@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """
 用量追踪模块
 
 通过 AstrBot 内置 KV Store 读写使用次数，不依赖 Redis。
 """
+
+from __future__ import annotations
 
 import datetime
 
@@ -58,6 +58,16 @@ class UsageTracker:
             val = await self.plugin.get_kv_data(key, 0)
             result[pt] = int(val) if val else 0
         return result
+
+    async def clear_user_usage(self, user_id: str) -> int:
+        """重置用户在所有启用维度上的当前周期用量。返回重置的维度数。"""
+        enabled_types = self.plugin.config_mgr.enabled_limit_types
+        count = 0
+        for pt in enabled_types:
+            key = self._build_key(user_id, None, pt, "individual")
+            await self.plugin.put_kv_data(key, 0)
+            count += 1
+        return count
 
     # ── key generation ──────────────────────────────────────────
 

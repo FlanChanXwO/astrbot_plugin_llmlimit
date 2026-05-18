@@ -1,6 +1,6 @@
 name: astrbot_plugin_llmlimit
 display_name: LLM限流
 desc: 精准控制 LLM 的调用频率与使用额度，支持日/周/月/自定义时间段的多维度限流策略。防止 Bot 被刷、控制 API 成本、合理分配资源。
-version: v1.2.0
+version: v1.3.0
 author: FlanChanXwO
 repo: https://github.com/FlanChanXwO/astrbot_plugin_llmlimit

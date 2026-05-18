@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """
 配置管理模块
 
 负责加载、解析和验证插件配置。
 """
+
+from __future__ import annotations
 
 import datetime
 
