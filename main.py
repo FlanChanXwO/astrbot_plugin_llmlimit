@@ -68,37 +68,142 @@ class LLMLimitPlugin(Star):
 
     def _init_web_apis(self):
         ctx = self.context
-        ctx.register_web_api("/astrbot_plugin_llmlimit/user-limits", self._api_get_user_limits, ["GET"], "获取用户限制列表")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/user-limits/create", self._api_create_user_limit, ["POST"], "创建用户限制")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/user-limits/update", self._api_update_user_limit, ["POST"], "更新用户限制")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/user-limits/delete", self._api_delete_user_limit, ["POST"], "删除用户限制")
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/user-limits",
+            self._api_get_user_limits,
+            ["GET"],
+            "获取用户限制列表",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/user-limits/create",
+            self._api_create_user_limit,
+            ["POST"],
+            "创建用户限制",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/user-limits/update",
+            self._api_update_user_limit,
+            ["POST"],
+            "更新用户限制",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/user-limits/delete",
+            self._api_delete_user_limit,
+            ["POST"],
+            "删除用户限制",
+        )
 
         # ── Group limits API ──
-        ctx.register_web_api("/astrbot_plugin_llmlimit/group-limits", self._api_get_group_limits, ["GET"], "获取群组限制列表")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/group-limits/create", self._api_create_group_limit, ["POST"], "创建群组限制")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/group-limits/update", self._api_update_group_limit, ["POST"], "更新群组限制")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/group-limits/delete", self._api_delete_group_limit, ["POST"], "删除群组限制")
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/group-limits",
+            self._api_get_group_limits,
+            ["GET"],
+            "获取群组限制列表",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/group-limits/create",
+            self._api_create_group_limit,
+            ["POST"],
+            "创建群组限制",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/group-limits/update",
+            self._api_update_group_limit,
+            ["POST"],
+            "更新群组限制",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/group-limits/delete",
+            self._api_delete_group_limit,
+            ["POST"],
+            "删除群组限制",
+        )
 
         # ── Time period limits API ──
-        ctx.register_web_api("/astrbot_plugin_llmlimit/time-period-limits", self._api_get_time_period_limits, ["GET"], "获取时间段限制列表")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/time-period-limits/create", self._api_create_time_period, ["POST"], "创建时间段限制")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/time-period-limits/update", self._api_update_time_period, ["POST"], "更新时间段限制")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/time-period-limits/delete", self._api_delete_time_period, ["POST"], "删除时间段限制")
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/time-period-limits",
+            self._api_get_time_period_limits,
+            ["GET"],
+            "获取时间段限制列表",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/time-period-limits/create",
+            self._api_create_time_period,
+            ["POST"],
+            "创建时间段限制",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/time-period-limits/update",
+            self._api_update_time_period,
+            ["POST"],
+            "更新时间段限制",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/time-period-limits/delete",
+            self._api_delete_time_period,
+            ["POST"],
+            "删除时间段限制",
+        )
 
         # ── Call history API ──
-        ctx.register_web_api("/astrbot_plugin_llmlimit/call-history", self._api_get_call_history, ["POST"], "获取分页调用历史")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/call-history/delete", self._api_delete_call_history, ["POST"], "批量删除调用历史")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/call-history/cleanup", self._api_cleanup_call_history, ["POST"], "手动清理过期调用历史")
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/call-history",
+            self._api_get_call_history,
+            ["POST"],
+            "获取分页调用历史",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/call-history/delete",
+            self._api_delete_call_history,
+            ["POST"],
+            "批量删除调用历史",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/call-history/cleanup",
+            self._api_cleanup_call_history,
+            ["POST"],
+            "手动清理过期调用历史",
+        )
 
         # ── Exempt users API ──
-        ctx.register_web_api("/astrbot_plugin_llmlimit/exempt-users", self._api_get_exempt_users, ["GET"], "获取豁免用户列表")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/exempt-users/create", self._api_create_exempt_user, ["POST"], "添加豁免用户")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/exempt-users/delete", self._api_delete_exempt_user, ["POST"], "删除豁免用户")
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/exempt-users",
+            self._api_get_exempt_users,
+            ["GET"],
+            "获取豁免用户列表",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/exempt-users/create",
+            self._api_create_exempt_user,
+            ["POST"],
+            "添加豁免用户",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/exempt-users/delete",
+            self._api_delete_exempt_user,
+            ["POST"],
+            "删除豁免用户",
+        )
 
         # ── Priority users API ──
-        ctx.register_web_api("/astrbot_plugin_llmlimit/priority-users", self._api_get_priority_users, ["GET"], "获取优先用户列表")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/priority-users/create", self._api_create_priority_user, ["POST"], "添加优先用户")
-        ctx.register_web_api("/astrbot_plugin_llmlimit/priority-users/delete", self._api_delete_priority_user, ["POST"], "删除优先用户")
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/priority-users",
+            self._api_get_priority_users,
+            ["GET"],
+            "获取优先用户列表",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/priority-users/create",
+            self._api_create_priority_user,
+            ["POST"],
+            "添加优先用户",
+        )
+        ctx.register_web_api(
+            "/astrbot_plugin_llmlimit/priority-users/delete",
+            self._api_delete_priority_user,
+            ["POST"],
+            "删除优先用户",
+        )
 
         logger.info("LLMLimit Web APIs registered at /astrbot_plugin_llmlimit/*")
 
@@ -458,7 +563,10 @@ class LLMLimitPlugin(Star):
         if idx < 0 or idx >= len(self.config_mgr.time_period_limits):
             return {"success": False, "error": "索引越界"}
         self.config_mgr.time_period_limits[idx] = {
-            "start_time": start, "end_time": end, "limit": lim, "enabled": enabled
+            "start_time": start,
+            "end_time": end,
+            "limit": lim,
+            "enabled": enabled,
         }
         self._save_time_period_limits()
         self._reload_config_mgr()

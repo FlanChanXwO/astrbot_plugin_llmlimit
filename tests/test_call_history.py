@@ -2,7 +2,6 @@
 测试 CallHistoryTracker — 调用历史记录与查询。
 """
 
-import json
 import time
 
 import pytest

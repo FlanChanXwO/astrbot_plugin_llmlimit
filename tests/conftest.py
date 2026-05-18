@@ -116,4 +116,5 @@ def mock_event():
 def data_store(tmp_plugin_dir):
     """创建指向临时目录的 PluginDataStore。"""
     from core.data_store import PluginDataStore
+
     return PluginDataStore(tmp_plugin_dir)

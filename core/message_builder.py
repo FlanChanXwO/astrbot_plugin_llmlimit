@@ -48,9 +48,7 @@ class MessageBuilder:
                 continue
             pct = (usage / limit * 100) if limit > 0 else 0
             bar = self._bar(usage, limit)
-            lines.append(
-                f"• {self.type_label(pt)}: {usage}/{limit} {bar} ({pct:.0f}%)"
-            )
+            lines.append(f"• {self.type_label(pt)}: {usage}/{limit} {bar} ({pct:.0f}%)")
         if group_mode == "shared" and "daily" in usages:
             lines.append("[!] 当前群组使用共享配额，所有成员共用限额。")
         return "\n".join(lines)
