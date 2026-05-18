@@ -17,7 +17,6 @@
     <main class="main">
         <div class="section-header">
             <h2>LLM 调用限制管理</h2>
-            <button class="btn btn-text" id="themeToggle">深色</button>
         </div>
 
         <!-- Tab 导航 -->
@@ -26,6 +25,8 @@
             <button class="tab-btn" data-tab="groups">群组限制</button>
             <button class="tab-btn" data-tab="periods">时间段限制</button>
             <button class="tab-btn" data-tab="history">调用历史</button>
+            <button class="tab-btn" data-tab="exempt">豁免名单</button>
+            <button class="tab-btn" data-tab="priority">优先用户</button>
         </div>
 
         <!-- 用户限制 -->
@@ -58,10 +59,50 @@
         <!-- 调用历史 -->
         <section id="tabHistory" class="tab-section" hidden>
             <div class="section-header">
-                <h4>最近 LLM 调用记录（最近 200 条）</h4>
-                <button class="btn btn-secondary btn-sm" id="btnRefreshHistory">刷新</button>
+                <h4>最近 LLM 调用记录</h4>
+                <div class="section-header-actions">
+                    <button class="btn btn-primary btn-sm" id="btnRefreshHistory">刷新</button>
+                    <button class="btn btn-danger btn-sm" id="btnDeleteAllHistory">清空全部</button>
+                </div>
+            </div>
+            <!-- 工具栏 -->
+            <div class="history-toolbar" id="historyToolbar">
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="cbSelectAll"/>
+                    <span>全选</span>
+                </label>
+                <button class="btn btn-secondary btn-sm" id="btnDeleteSelected" disabled>删除选中</button>
+                <div class="page-size-selector">
+                    <span>每页</span>
+                    <select id="selPageSize">
+                        <option value="20">20</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span>条</span>
+                </div>
             </div>
             <div id="historyList"></div>
+            <!-- 分页 -->
+            <div class="pagination" id="historyPagination"></div>
+        </section>
+
+        <!-- 豁免用户 -->
+        <section id="tabExempt" class="tab-section" hidden>
+            <div class="section-header">
+                <h4>豁免用户（跳过所有限流检查）</h4>
+                <button class="btn btn-primary" id="btnAddExempt"><span class="icon">+</span> 添加用户</button>
+            </div>
+            <div class="item-list" id="exemptList"></div>
+        </section>
+
+        <!-- 优先用户 -->
+        <section id="tabPriority" class="tab-section" hidden>
+            <div class="section-header">
+                <h4>优先用户（不受群组共享配额限制）</h4>
+                <button class="btn btn-primary" id="btnAddPriority"><span class="icon">+</span> 添加用户</button>
+            </div>
+            <div class="item-list" id="priorityList"></div>
         </section>
     </main>
 
@@ -154,6 +195,36 @@
                 <div class="form-actions">
                     <button type="button" class="btn btn-text" id="periodFormCancel">取消</button>
                     <button type="submit" class="btn btn-primary" id="periodFormSubmit">添加</button>
+                </div>
+            </form>
+
+            <!-- 豁免用户表单 -->
+            <form class="form" id="exemptForm" hidden>
+                <div class="form-group">
+                    <label>用户ID <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="inputExemptUserId" placeholder="例如: 123456789" required/>
+                    </div>
+                    <span class="hint">此用户将跳过所有 LLM 调用次数限制（日/周/月/时段/群组限制均不生效）。建议仅对管理员使用。</span>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-text" id="exemptFormCancel">取消</button>
+                    <button type="submit" class="btn btn-primary" id="exemptFormSubmit">添加</button>
+                </div>
+            </form>
+
+            <!-- 优先用户表单 -->
+            <form class="form" id="priorityForm" hidden>
+                <div class="form-group">
+                    <label>用户ID <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="inputPriorityUserId" placeholder="例如: 123456789" required/>
+                    </div>
+                    <span class="hint">此用户不受群组共享配额限制（享有独立配额），但仍受日/周/月/时段及个人限制约束。</span>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-text" id="priorityFormCancel">取消</button>
+                    <button type="submit" class="btn btn-primary" id="priorityFormSubmit">添加</button>
                 </div>
             </form>
         </div>

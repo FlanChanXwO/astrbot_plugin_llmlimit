@@ -1,0 +1,53 @@
+/* ===== 组件样式 ===== */
+.item-actions { display: flex; gap: 8px; align-items: center; }
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 9999px;
+  background: #edf2f7; color: #4a5568; font-size: 13px;
+}
+
+/* ===== 历史记录工具栏 ===== */
+.history-toolbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0;
+}
+.checkbox-inline {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 13px; color: #4a5568; cursor: pointer;
+}
+.checkbox-inline input[type="checkbox"] { margin: 0; cursor: pointer; }
+.page-size-selector {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 13px; color: #718096; margin-left: auto;
+}
+.page-size-selector select {
+  padding: 2px 4px; border: 1px solid #cbd5e0; border-radius: 4px;
+  font-size: 13px; background: white;
+}
+
+/* ===== 分页 ===== */
+.pagination {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 0; border-top: 1px solid #e2e8f0; margin-top: 12px;
+}
+.pagination-info { font-size: 13px; color: #718096; margin-right: auto; }
+
+/* ===== 历史记录表 ===== */
+.history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.history-table th, .history-table td {
+  padding: 8px 6px; text-align: left;
+  border-bottom: 1px solid #e2e8f0; white-space: nowrap;
+}
+.history-table th { font-weight: 600; color: #718096; font-size: 12px; }
+.history-table tr:hover { background: #f7fafc; }
+.history-table .msg-preview { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.history-table td:first-child { width: 32px; }
+
+/* ===== 历史设置 ===== */
+.history-settings {
+  margin-top: 18px; padding: 16px; background: #f7fafc;
+  border-radius: 10px; border: 1px solid #e2e8f0;
+}
+.history-settings h4 { font-size: 14px; margin-bottom: 12px; color: #2d3748; }
+
+/* ===== 区块头部按钮组 ===== */
+.section-header-actions { display: flex; gap: 8px; align-items: center; }
