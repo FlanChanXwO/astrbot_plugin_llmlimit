@@ -1,13 +1,12 @@
 import time
 
-from quart import request
-
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
 from astrbot.api.platform import MessageType
 from astrbot.api.provider import ProviderRequest
 from astrbot.api.star import Context, Star, register
 from astrbot.core.star.star_tools import StarTools
+from quart import request
 
 from .core import (
     CallHistoryTracker,
@@ -299,7 +298,6 @@ class LLMLimitPlugin(Star):
     @filter.command_group("limit_admin")
     def cmd_limit_admin(self):
         """管理命令入口 (需要 ADMIN 权限) — 使用子命令管理限制"""
-        pass
 
     def _check_admin(self, event: AstrMessageEvent) -> bool:
         if not event.is_admin():

@@ -219,7 +219,7 @@ class ConfigManager:
 
     def _load_or_migrate_kv(self, data: dict, limits: dict, key: str, target: dict):
         """从 data_store 加载 kv，或从 AstrBotConfig 迁移旧数据。"""
-        if key in data and data[key]:
+        if data.get(key):
             # data_store 中有数据，直接使用
             target.update(data[key])
         elif limits.get(key):
@@ -230,7 +230,7 @@ class ConfigManager:
 
     def _load_or_migrate_set(self, data: dict, limits: dict, key: str, target: set):
         """从 data_store 加载 set，或从 AstrBotConfig 迁移旧数据。"""
-        if key in data and data[key]:
+        if data.get(key):
             # data_store 中以 list 形式存储
             for item in data[key]:
                 target.add(str(item).strip())
@@ -243,7 +243,7 @@ class ConfigManager:
     def _load_or_migrate_time_period(self, data: dict, limits: dict):
         """从 data_store 加载时间段，或从 AstrBotConfig 迁移旧数据。"""
         key = "time_period_limits"
-        if key in data and data[key]:
+        if data.get(key):
             # data_store 中以 list[dict] 形式存储
             for p in data[key]:
                 if isinstance(p, dict) and p.get("enabled", True):
